@@ -11,8 +11,11 @@ import com.hisaab.diary.domain.fake.FakeStore
 import com.hisaab.diary.domain.model.Entry
 import com.hisaab.diary.domain.model.EntryType
 import com.hisaab.diary.domain.model.LedgerEntry
+import com.hisaab.diary.domain.usecase.DeleteTransactionUseCase
 import com.hisaab.diary.domain.usecase.ObserveLedgerUseCase
 import com.hisaab.diary.domain.usecase.ObservePartyUseCase
+import com.hisaab.diary.domain.usecase.RecentlyDeletedEntry
+import com.hisaab.diary.domain.usecase.UndoDeleteTransactionUseCase
 import com.hisaab.diary.util.MainDispatcherRule
 import java.util.TimeZone
 import kotlinx.coroutines.test.runTest
@@ -34,11 +37,15 @@ class PartyDetailViewModelTest {
     private val parties = FakePartyRepository(store)
     private val entries = FakeEntryRepository(store)
 
+    private val recentlyDeleted = RecentlyDeletedEntry()
+
     private fun viewModel(partyId: Long) = PartyDetailViewModel(
         SavedStateHandle(mapOf("partyId" to partyId)),
         ObservePartyUseCase(parties),
         ObserveLedgerUseCase(entries),
         dateUtils,
+        recentlyDeleted,
+        UndoDeleteTransactionUseCase(entries),
     )
 
     @Test
@@ -66,6 +73,34 @@ class PartyDetailViewModelTest {
             assertFalse(state.isLoading)
             assertNull(state.summary)
         }
+    }
+
+    @Test
+    fun undoRestoresDeletedEntryOfThisPartyOnly() = runTest {
+        val ali = parties.addParty(1, "Ali", null, null)
+        val id = entries.addEntry(entry(ali, EntryType.GAVE, 1_000, date = DAY))
+        val vm = viewModel(ali)
+
+        val deleted = DeleteTransactionUseCase(entries)(id)!!
+        recentlyDeleted.remember(deleted)
+        assertEquals(deleted, vm.pendingUndo.value)
+
+        vm.undo(deleted)
+        assertNull(vm.pendingUndo.value)
+        assertEquals(deleted, entries.getEntry(id))
+
+        val other = entry(partyId = 999, type = EntryType.GOT, paisa = 5, date = 0)
+        recentlyDeleted.remember(other)
+        assertNull(vm.pendingUndo.value)
+    }
+
+    @Test
+    fun dismissClearsPendingUndo() {
+        val vm = viewModel(1)
+        val e = entry(1, EntryType.GAVE, 5, 0)
+        recentlyDeleted.remember(e)
+        vm.dismissUndo(e)
+        assertNull(vm.pendingUndo.value)
     }
 
     @Test

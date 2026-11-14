@@ -64,6 +64,7 @@ fun AddEntryDestination(
         viewModel.effects.collect { effect ->
             when (effect) {
                 AddEntryEffect.Saved -> currentOnBack()
+                AddEntryEffect.Deleted -> currentOnBack()
             }
         }
     }
@@ -83,10 +84,24 @@ fun AddEntryScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.add_entry_for, state.partyName)) },
+                title = {
+                    Text(
+                        stringResource(
+                            if (state.isEdit) R.string.edit_entry_for else R.string.add_entry_for,
+                            state.partyName,
+                        ),
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(painterResource(R.drawable.ic_arrow_back), stringResource(R.string.action_back))
+                    }
+                },
+                actions = {
+                    if (state.isEdit) {
+                        IconButton(onClick = { onEvent(AddEntryEvent.Delete) }) {
+                            Icon(painterResource(R.drawable.ic_delete), stringResource(R.string.action_delete_entry))
+                        }
                     }
                 },
             )

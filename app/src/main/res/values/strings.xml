@@ -74,6 +74,10 @@
 
     <!-- Add entry -->
     <string name="add_entry_for">New entry · %1$s</string>
+    <string name="edit_entry_for">Edit entry · %1$s</string>
+    <string name="action_delete_entry">Delete entry</string>
+    <string name="entry_deleted">Entry deleted</string>
+    <string name="action_undo">Undo</string>
     <string name="field_entry_note">Note (e.g. chai, rent, loan)</string>
     <string name="amount_result">= %1$s</string>
     <string name="entry_date">Date: %1$s</string>

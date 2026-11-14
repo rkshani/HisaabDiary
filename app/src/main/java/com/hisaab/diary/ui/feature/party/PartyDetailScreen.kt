@@ -19,6 +19,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -55,6 +59,19 @@ fun PartyDetailDestination(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showEditor by rememberSaveable { mutableStateOf(false) }
     val currentOnBack by rememberUpdatedState(onBack)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val pendingUndo by viewModel.pendingUndo.collectAsStateWithLifecycle()
+    val deletedMessage = stringResource(R.string.entry_deleted)
+    val undoLabel = stringResource(R.string.action_undo)
+    LaunchedEffect(pendingUndo) {
+        val entry = pendingUndo ?: return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(
+            message = deletedMessage,
+            actionLabel = undoLabel,
+            duration = SnackbarDuration.Long,
+        )
+        if (result == SnackbarResult.ActionPerformed) viewModel.undo(entry) else viewModel.dismissUndo(entry)
+    }
 
     // The party was deleted (here or elsewhere): leave the screen.
     LaunchedEffect(state.isLoading, state.summary) {
@@ -63,6 +80,7 @@ fun PartyDetailDestination(
 
     PartyDetailScreen(
         state = state,
+        snackbarHostState = snackbarHostState,
         onBack = onBack,
         onEdit = { showEditor = true },
         onAddEntry = { isGave -> onAddEntry(viewModel.partyId, isGave) },
@@ -86,6 +104,7 @@ fun PartyDetailDestination(
 @Composable
 fun PartyDetailScreen(
     state: PartyDetailUiState,
+    snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onAddEntry: (isGave: Boolean) -> Unit,
@@ -114,6 +133,7 @@ fun PartyDetailScreen(
             )
         },
         bottomBar = { EntryButtons(onAddEntry = onAddEntry) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         val summary = state.summary
         if (summary == null) {

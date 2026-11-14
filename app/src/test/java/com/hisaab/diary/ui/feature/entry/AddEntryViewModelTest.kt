@@ -9,10 +9,15 @@ import com.hisaab.diary.core.money.Money
 import com.hisaab.diary.domain.fake.FakeEntryRepository
 import com.hisaab.diary.domain.fake.FakePartyRepository
 import com.hisaab.diary.domain.fake.FakeStore
+import com.hisaab.diary.domain.model.Entry
 import com.hisaab.diary.domain.model.EntryType
 import com.hisaab.diary.domain.usecase.AddTransactionUseCase
+import com.hisaab.diary.domain.usecase.DeleteTransactionUseCase
 import com.hisaab.diary.domain.usecase.EntryError
 import com.hisaab.diary.domain.usecase.GetPartyUseCase
+import com.hisaab.diary.domain.usecase.GetTransactionUseCase
+import com.hisaab.diary.domain.usecase.RecentlyDeletedEntry
+import com.hisaab.diary.domain.usecase.UpdateTransactionUseCase
 import com.hisaab.diary.util.MainDispatcherRule
 import java.util.TimeZone
 import kotlinx.coroutines.runBlocking
@@ -36,12 +41,25 @@ class AddEntryViewModelTest {
     private val entries = FakeEntryRepository(store)
     private val partyId = runBlocking { parties.addParty(1, "Ali", null, null) }
 
-    private fun viewModel(isGave: Boolean = true) = AddEntryViewModel(
-        SavedStateHandle(mapOf("partyId" to partyId, "isGave" to isGave)),
-        AddTransactionUseCase(entries) { NOW },
-        GetPartyUseCase(parties),
-        dateUtils,
-    )
+    private val recentlyDeleted = RecentlyDeletedEntry()
+
+    private fun viewModel(isGave: Boolean = true, entryId: Long? = null): AddEntryViewModel {
+        val args = buildMap<String, Any> {
+            put("partyId", partyId)
+            put("isGave", isGave)
+            entryId?.let { put("entryId", it) }
+        }
+        return AddEntryViewModel(
+            SavedStateHandle(args),
+            AddTransactionUseCase(entries) { NOW },
+            UpdateTransactionUseCase(entries) { NOW },
+            GetTransactionUseCase(entries),
+            DeleteTransactionUseCase(entries),
+            recentlyDeleted,
+            GetPartyUseCase(parties),
+            dateUtils,
+        )
+    }
 
     @Test
     fun startsWithRouteTypeTodayAndPartyName() {
@@ -90,6 +108,38 @@ class AddEntryViewModelTest {
         assertEquals(EntryType.GOT, saved.type)
         assertEquals("chai", saved.note)
         assertEquals(partyId, saved.partyId)
+    }
+
+    @Test
+    fun editLoadsEntryAndUpdatesIt() = runTest {
+        val id = entries.addEntry(Entry(0, partyId, EntryType.GOT, Money(125_050), "rent", DAY, null, null, 0, 0))
+        val vm = viewModel(entryId = id)
+        val loaded = vm.state.value
+        assertTrue(loaded.isEdit)
+        assertEquals("1250.50", loaded.expression)
+        assertEquals("rent", loaded.note)
+        assertEquals(EntryType.GOT, loaded.type)
+
+        vm.effects.test {
+            vm.onEvent(AddEntryEvent.ClearAmount)
+            "300".forEach { vm.onEvent(AddEntryEvent.Key(it)) }
+            vm.onEvent(AddEntryEvent.Save)
+            assertEquals(AddEntryEffect.Saved, awaitItem())
+        }
+        assertEquals(Money.ofRupees(300), entries.getEntry(id)!!.amount)
+        assertEquals(1, store.entries.value.size)
+    }
+
+    @Test
+    fun deleteRemembersEntryForUndo() = runTest {
+        val id = entries.addEntry(Entry(0, partyId, EntryType.GAVE, Money(500), null, DAY, null, null, 0, 0))
+        val vm = viewModel(entryId = id)
+        vm.effects.test {
+            vm.onEvent(AddEntryEvent.Delete)
+            assertEquals(AddEntryEffect.Deleted, awaitItem())
+        }
+        assertNull(entries.getEntry(id))
+        assertEquals(id, recentlyDeleted.entry.value!!.id)
     }
 
     @Test

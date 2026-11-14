@@ -7,12 +7,17 @@ import androidx.navigation.toRoute
 import com.hisaab.diary.core.date.DateUtils
 import com.hisaab.diary.core.money.AmountCalculator
 import com.hisaab.diary.core.money.Money
+import com.hisaab.diary.core.money.MoneyFormatter
 import com.hisaab.diary.core.result.Outcome
 import com.hisaab.diary.domain.model.EntryType
 import com.hisaab.diary.domain.usecase.AddTransactionUseCase
+import com.hisaab.diary.domain.usecase.DeleteTransactionUseCase
 import com.hisaab.diary.domain.usecase.EntryError
 import com.hisaab.diary.domain.usecase.EntryInput
 import com.hisaab.diary.domain.usecase.GetPartyUseCase
+import com.hisaab.diary.domain.usecase.GetTransactionUseCase
+import com.hisaab.diary.domain.usecase.RecentlyDeletedEntry
+import com.hisaab.diary.domain.usecase.UpdateTransactionUseCase
 import com.hisaab.diary.ui.navigation.AddEntryRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -35,6 +40,9 @@ data class AddEntryUiState(
     val dueDate: Long? = null,
     val error: EntryError? = null,
     val isSaving: Boolean = false,
+    /** True when editing an existing entry. */
+    val isEdit: Boolean = false,
+    val attachmentPath: String? = null,
 ) {
     /** Result of [expression], or null while it is empty or incomplete. */
     val amount: Money? get() = AmountCalculator.evaluate(expression)
@@ -59,16 +67,25 @@ sealed interface AddEntryEvent {
     data class DueDatePicked(val pickerMillis: Long?) : AddEntryEvent
 
     data object Save : AddEntryEvent
+
+    /** Delete the entry being edited. The ledger then offers Undo. */
+    data object Delete : AddEntryEvent
 }
 
 sealed interface AddEntryEffect {
     data object Saved : AddEntryEffect
+
+    data object Deleted : AddEntryEffect
 }
 
 @HiltViewModel
 class AddEntryViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val addTransaction: AddTransactionUseCase,
+    private val updateTransaction: UpdateTransactionUseCase,
+    private val getTransaction: GetTransactionUseCase,
+    private val deleteTransaction: DeleteTransactionUseCase,
+    private val recentlyDeleted: RecentlyDeletedEntry,
     private val getParty: GetPartyUseCase,
     private val dateUtils: DateUtils,
 ) : ViewModel() {
@@ -88,6 +105,22 @@ class AddEntryViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             getParty(route.partyId)?.let { party -> _state.update { it.copy(partyName = party.name) } }
+        }
+        route.entryId?.let(::loadEntry)
+    }
+
+    private fun loadEntry(id: Long) = viewModelScope.launch {
+        val entry = getTransaction(id) ?: return@launch
+        _state.update {
+            it.copy(
+                isEdit = true,
+                type = entry.type,
+                expression = MoneyFormatter().formatForInput(entry.amount),
+                note = entry.note.orEmpty(),
+                date = entry.date,
+                dueDate = entry.dueDate,
+                attachmentPath = entry.attachmentPath,
+            )
         }
     }
 
@@ -114,6 +147,8 @@ class AddEntryViewModel @Inject constructor(
             }
 
             AddEntryEvent.Save -> save()
+
+            AddEntryEvent.Delete -> delete()
         }
     }
 
@@ -133,12 +168,26 @@ class AddEntryViewModel @Inject constructor(
                 note = current.note,
                 date = current.date,
                 dueDate = current.dueDate,
+                attachmentPath = current.attachmentPath,
             )
-            when (val result = addTransaction(input)) {
-                is Outcome.Success -> _effects.send(AddEntryEffect.Saved)
-                is Outcome.Failure -> _state.update { it.copy(error = result.error) }
+            val error = when (val id = route.entryId) {
+                null -> (addTransaction(input) as? Outcome.Failure)?.error
+                else -> (updateTransaction(id, input) as? Outcome.Failure)?.error
+            }
+            if (error == null) {
+                _effects.send(AddEntryEffect.Saved)
+            } else {
+                _state.update { it.copy(error = error) }
             }
             _state.update { it.copy(isSaving = false) }
+        }
+    }
+
+    private fun delete() {
+        val id = route.entryId ?: return
+        viewModelScope.launch {
+            deleteTransaction(id)?.let(recentlyDeleted::remember)
+            _effects.send(AddEntryEffect.Deleted)
         }
     }
 }
