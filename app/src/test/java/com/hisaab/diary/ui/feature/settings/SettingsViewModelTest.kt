@@ -41,6 +41,14 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun privacyToggles() {
+        vm.setHideAmounts(true)
+        vm.setBlockScreenshots(true)
+        assertTrue(repo.settings.value.hideAmounts)
+        assertTrue(repo.settings.value.blockScreenshots)
+    }
+
+    @Test
     fun badPinIsIgnored() = runTest {
         vm.enableLock("12")
         assertFalse(repo.settings.value.isLockEnabled)
