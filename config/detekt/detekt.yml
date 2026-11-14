@@ -10,6 +10,8 @@ complexity:
   LongParameterList:
     # Composables often take many parameters (modifier, state, callbacks).
     ignoreAnnotated: [ 'Composable' ]
+    ignoreDefaultParameters: true
+    excludes: [ '**/test/**', '**/androidTest/**' ]
   TooManyFunctions:
     # Small helper classes (dates, DAOs, repositories) have many tiny functions.
     thresholdInClasses: 16
@@ -18,6 +20,10 @@ complexity:
     ignoreAnnotatedFunctions: [ 'Preview' ]
 
 style:
+  ReturnCount:
+    # Early 'return Failure' guard clauses are clear and common in use cases.
+    max: 3
+    excludeGuardClauses: true
   MagicNumber:
     ignorePropertyDeclaration: true
     ignoreCompanionObjectPropertyDeclaration: true
