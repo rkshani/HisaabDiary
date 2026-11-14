@@ -31,6 +31,14 @@ jobs:
         shell: bash
         run: ./gradlew assembleDebug 2>&1 | tee -a gradle-output.log
 
+      - name: Build release APK (R8) and show its size
+        shell: bash
+        run: |
+          ./gradlew assembleRelease 2>&1 | tee -a gradle-output.log
+          for f in app/build/outputs/apk/release/*.apk; do
+            echo "::notice::Release APK $(basename "$f"): $(du -k "$f" | cut -f1) KB"
+          done
+
       - name: Unit tests
         shell: bash
         run: ./gradlew testDebugUnitTest 2>&1 | tee -a gradle-output.log
