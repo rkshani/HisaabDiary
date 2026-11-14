@@ -23,7 +23,6 @@
     <string name="summary_net_settled">Net: all settled</string>
 
     <!-- Party list -->
-    <string name="parties_header">People (%1$d)</string>
     <string name="party_no_entries">No entries yet</string>
     <string name="status_will_get">You will get</string>
     <string name="status_will_give">You will give</string>
