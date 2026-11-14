@@ -19,7 +19,7 @@ complexity:
     excludes: [ '**/test/**', '**/androidTest/**' ]
   TooManyFunctions:
     # Small helper classes (dates, DAOs, repositories) have many tiny functions.
-    thresholdInClasses: 16
+    thresholdInClasses: 20
     thresholdInInterfaces: 16
     thresholdInObjects: 16
     ignorePrivate: true

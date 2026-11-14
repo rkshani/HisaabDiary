@@ -28,18 +28,22 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug
+        shell: bash
+        run: ./gradlew assembleDebug 2>&1 | tee -a gradle-output.log
 
       - name: Unit tests
-        run: ./gradlew testDebugUnitTest
+        shell: bash
+        run: ./gradlew testDebugUnitTest 2>&1 | tee -a gradle-output.log
 
       - name: Lint
-        run: ./gradlew lint
+        shell: bash
+        run: ./gradlew lint 2>&1 | tee -a gradle-output.log
 
       - name: ktlint and detekt
         # Run even when Lint failed, so we see all problems at once.
         if: ${{ !cancelled() }}
-        run: ./gradlew ktlintCheck detekt --continue
+        shell: bash
+        run: ./gradlew ktlintCheck detekt --continue 2>&1 | tee -a gradle-output.log
 
       - name: Show lint, ktlint and detekt problems as annotations
         if: failure()
@@ -57,6 +61,16 @@ jobs:
                       line = loc.get("region", {}).get("startLine", 1)
                       msg = r.get("message", {}).get("text", "").replace(chr(10), " ")
                       print(f"::error file={uri},line={line}::[{r.get('ruleId')}] {msg}")
+          # Kotlin compiler errors and failed tests from the Gradle output.
+          if os.path.exists("gradle-output.log"):
+              shown = 0
+              for row in open("gradle-output.log", errors="replace"):
+                  row = row.strip()
+                  if row.startswith("e: ") or " FAILED" in row or "Exception" in row:
+                      print(f"::error::{row[:900]}")
+                      shown += 1
+                      if shown >= 40:
+                          break
           for path in glob.glob("app/build/reports/ktlint/**/*.txt", recursive=True):
               for row in open(path):
                   if row.strip():
