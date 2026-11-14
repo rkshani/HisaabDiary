@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import com.hisaab.diary.ui.feature.entry.AddEntryDestination
 import com.hisaab.diary.ui.feature.home.HomeRoute
 import com.hisaab.diary.ui.feature.party.PartyDetailDestination
+import com.hisaab.diary.ui.feature.reminders.RemindersDestination
 import com.hisaab.diary.ui.feature.reports.ReportsScreen
 import com.hisaab.diary.ui.feature.settings.SettingsScreen
 
@@ -20,6 +21,13 @@ fun HisaabNavHost(navController: NavHostController, modifier: Modifier = Modifie
     ) {
         composable<HomeRoute> {
             HomeRoute(
+                onOpenParty = { partyId -> navController.navigate(PartyDetailRoute(partyId)) },
+                onOpenReminders = { navController.navigate(RemindersRoute) },
+            )
+        }
+        composable<RemindersRoute> {
+            RemindersDestination(
+                onBack = navController::popBackStack,
                 onOpenParty = { partyId -> navController.navigate(PartyDetailRoute(partyId)) },
             )
         }

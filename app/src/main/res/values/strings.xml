@@ -114,6 +114,16 @@
         <item quantity="other">%d days late</item>
     </plurals>
 
+    <!-- Reminder list -->
+    <string name="reminders_title">Reminders</string>
+    <string name="reminders_empty">No reminders. Add a due date to an entry to get one.</string>
+    <string name="reminders_overdue">Late</string>
+    <string name="reminders_today">Today</string>
+    <string name="reminders_upcoming">Coming up</string>
+    <string name="reminder_due_on">Due: %1$s</string>
+    <string name="action_snooze">Remind tomorrow</string>
+    <string name="action_mark_done">Done</string>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>
