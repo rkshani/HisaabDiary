@@ -3,6 +3,7 @@ package com.hisaab.diary.domain.repository
 import com.hisaab.diary.domain.model.Book
 import com.hisaab.diary.domain.model.BookTotals
 import com.hisaab.diary.domain.model.Entry
+import com.hisaab.diary.domain.model.ExportRow
 import com.hisaab.diary.domain.model.LedgerEntry
 import com.hisaab.diary.domain.model.Party
 import com.hisaab.diary.domain.model.PartySummary
@@ -60,6 +61,9 @@ interface EntryRepository {
     suspend fun updateEntry(entry: Entry)
 
     suspend fun deleteEntry(id: Long)
+
+    /** Entries with names for export; all books when [bookId] is null. Oldest first. */
+    suspend fun getForExport(bookId: Long?): List<ExportRow>
 
     /** Puts back a deleted entry with its old id (for Undo). */
     suspend fun restoreEntry(entry: Entry)

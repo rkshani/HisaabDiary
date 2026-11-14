@@ -1,9 +1,12 @@
 package com.hisaab.diary.ui.feature.reports
 
+import android.net.Uri
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.hisaab.diary.core.date.DateUtils
 import com.hisaab.diary.core.money.Money
+import com.hisaab.diary.data.export.CsvExporter
 import com.hisaab.diary.domain.fake.FakeBookRepository
 import com.hisaab.diary.domain.fake.FakeEntryRepository
 import com.hisaab.diary.domain.fake.FakePartyRepository
@@ -20,7 +23,9 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class ReportsViewModelTest {
     @get:Rule
     val main = MainDispatcherRule()
@@ -37,7 +42,17 @@ class ReportsViewModelTest {
         ObservePartiesUseCase(parties),
         ObserveEntriesBetweenUseCase(entries),
         dateUtils,
+        exporter,
     )
+
+    private var exportedBook: Long? = -1
+    private var exportResult: Int? = 3
+    private val exporter = object : CsvExporter {
+        override suspend fun export(bookId: Long?, target: Uri): Int? {
+            exportedBook = bookId
+            return exportResult
+        }
+    }
 
     @Test
     fun todayRangeShowsTodaysEntriesWithPartyNames() = runTest {
@@ -69,6 +84,25 @@ class ReportsViewModelTest {
             assertEquals(DAY * 5 - 1, state.to)
             assertEquals(3, state.report!!.buckets.size)
         }
+    }
+
+    @Test
+    fun exportCsvUsesCurrentBookAndReportsResult() = runTest {
+        val book = books.addBook("Shop")
+        settings.setSelectedBook(book)
+        val vm = viewModel()
+        vm.uiState.test {
+            awaitUntil { !it.isLoading }
+            vm.effects.test {
+                vm.exportCsv(Uri.EMPTY)
+                assertEquals(ReportsEffect.CsvSaved(3), awaitItem())
+                exportResult = null
+                vm.exportCsv(Uri.EMPTY)
+                assertEquals(ReportsEffect.CsvFailed, awaitItem())
+            }
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertEquals(book, exportedBook)
     }
 
     private suspend fun ReceiveTurbine<ReportsUiState>.awaitUntil(check: (ReportsUiState) -> Boolean): ReportsUiState {

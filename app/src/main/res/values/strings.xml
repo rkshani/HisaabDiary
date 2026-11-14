@@ -154,6 +154,19 @@
     <string name="pdf_footer">Made with Hisaab Diary</string>
     <string name="pdf_page">Page %1$d</string>
 
+    <!-- CSV export -->
+    <string name="action_export_csv">Export CSV</string>
+    <string name="csv_saved">Saved %1$d entries as CSV.</string>
+    <string name="csv_failed">Could not save the CSV file.</string>
+    <string name="csv_date">Date</string>
+    <string name="csv_book">Book</string>
+    <string name="csv_person">Person</string>
+    <string name="csv_phone">Phone</string>
+    <string name="csv_type">Type</string>
+    <string name="csv_amount">Amount</string>
+    <string name="csv_note">Note</string>
+    <string name="csv_due_date">Due date</string>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>

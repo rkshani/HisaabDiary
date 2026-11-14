@@ -36,6 +36,9 @@ data class Entry(
     val signedAmount: Money get() = if (type == EntryType.GOT) amount else -amount
 }
 
+/** One entry with its book and party names, for CSV export. */
+data class ExportRow(val entry: Entry, val bookName: String, val partyName: String, val partyPhone: String?)
+
 /** Who owes whom, from your side. */
 enum class BalanceStatus { WILL_GET, WILL_GIVE, SETTLED }
 
