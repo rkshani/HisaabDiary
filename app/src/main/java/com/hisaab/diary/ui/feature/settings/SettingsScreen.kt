@@ -1,5 +1,7 @@
 package com.hisaab.diary.ui.feature.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -14,15 +16,20 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -30,11 +37,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hisaab.diary.R
+import com.hisaab.diary.core.date.DateFormatter
 import com.hisaab.diary.core.security.PinHasher
+import com.hisaab.diary.data.backup.BackupManager
 import com.hisaab.diary.domain.model.AppSettings
 import com.hisaab.diary.ui.feature.entry.Keypad
 import com.hisaab.diary.ui.feature.lock.PinDots
@@ -43,11 +53,26 @@ import com.hisaab.diary.ui.feature.lock.PinDots
 fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(viewModel) {
+        viewModel.messages.collect { message ->
+            val text = when (message) {
+                SettingsMessage.BACKUP_DONE -> context.getString(R.string.backup_done)
+                SettingsMessage.BACKUP_FAILED -> context.getString(R.string.backup_failed)
+            }
+            snackbarHostState.showSnackbar(text)
+        }
+    }
+    val saveBackup = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream"),
+    ) { uri -> uri?.let(viewModel::createBackup) }
+    val today = remember { DateFormatter().fileDate(System.currentTimeMillis()) }
     val biometricAvailable = BiometricManager.from(context)
         .canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
     SettingsScreen(
         settings = settings,
         biometricAvailable = biometricAvailable,
+        snackbarHostState = snackbarHostState,
         actions = SettingsActions(
             onEnableLock = viewModel::enableLock,
             onDisableLock = viewModel::disableLock,
@@ -55,6 +80,10 @@ fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewMo
             onLockTimeoutChange = viewModel::setLockTimeout,
             onHideAmountsChange = viewModel::setHideAmounts,
             onBlockScreenshotsChange = viewModel::setBlockScreenshots,
+            onCreateBackup = { password ->
+                viewModel.startBackup(password)
+                runCatching { saveBackup.launch(BackupManager.fileName(today)) }
+            },
         ),
         modifier = modifier,
     )
@@ -68,6 +97,7 @@ class SettingsActions(
     val onLockTimeoutChange: (Int) -> Unit,
     val onHideAmountsChange: (Boolean) -> Unit,
     val onBlockScreenshotsChange: (Boolean) -> Unit,
+    val onCreateBackup: (password: String?) -> Unit,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,14 +105,17 @@ class SettingsActions(
 fun SettingsScreen(
     settings: AppSettings,
     biometricAvailable: Boolean,
+    snackbarHostState: SnackbarHostState,
     actions: SettingsActions,
     modifier: Modifier = Modifier,
 ) {
     var settingPin by rememberSaveable { mutableStateOf(false) }
     var pickTimeout by rememberSaveable { mutableStateOf(false) }
+    var askBackupPassword by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         modifier = modifier,
         topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_settings)) }) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(
             Modifier
@@ -127,9 +160,25 @@ fun SettingsScreen(
                 onCheckedChange = actions.onBlockScreenshotsChange,
             )
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            SectionTitle(stringResource(R.string.settings_backup))
+            ClickRow(
+                title = stringResource(R.string.backup_create),
+                subtitle = stringResource(R.string.backup_create_desc),
+                onClick = { askBackupPassword = true },
+            )
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
         }
     }
 
+    if (askBackupPassword) {
+        BackupPasswordDialog(
+            onConfirm = { password ->
+                askBackupPassword = false
+                actions.onCreateBackup(password)
+            },
+            onDismiss = { askBackupPassword = false },
+        )
+    }
     if (settingPin) {
         SetPinDialog(
             onDone = { pin ->
@@ -285,6 +334,47 @@ private fun TimeoutDialog(
             }
         },
         confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
+}
+
+/** Optional password for the backup file, typed twice. Empty = no password. */
+@Composable
+private fun BackupPasswordDialog(onConfirm: (String?) -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+    var password by rememberSaveable { mutableStateOf("") }
+    var again by rememberSaveable { mutableStateOf("") }
+    val mismatch = password.isNotEmpty() && again.isNotEmpty() && password != again
+    AlertDialog(
+        modifier = modifier,
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.backup_password_title)) },
+        text = {
+            Column {
+                Text(stringResource(R.string.backup_password_desc), style = MaterialTheme.typography.bodyMedium)
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text(stringResource(R.string.backup_password)) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    singleLine = true,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+                OutlinedTextField(
+                    value = again,
+                    onValueChange = { again = it },
+                    label = { Text(stringResource(R.string.backup_password_again)) },
+                    visualTransformation = PasswordVisualTransformation(),
+                    isError = mismatch,
+                    singleLine = true,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(password.ifEmpty { null }) }, enabled = password == again) {
+                Text(stringResource(R.string.backup_save))
+            }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

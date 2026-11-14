@@ -208,6 +208,18 @@
     <string name="settings_block_screenshots">Block screenshots</string>
     <string name="settings_block_screenshots_desc">Also hides the app in the recent apps screen.</string>
 
+    <!-- Backup -->
+    <string name="settings_backup">Backup</string>
+    <string name="backup_create">Create backup</string>
+    <string name="backup_create_desc">Save all your data to a .hisaab file (Downloads, USB or Drive).</string>
+    <string name="backup_password_title">Protect with a password?</string>
+    <string name="backup_password_desc">Optional. If you forget it, the backup cannot be opened.</string>
+    <string name="backup_password">Password (optional)</string>
+    <string name="backup_password_again">Password again</string>
+    <string name="backup_save">Choose where to save</string>
+    <string name="backup_done">Backup saved.</string>
+    <string name="backup_failed">Could not save the backup.</string>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>

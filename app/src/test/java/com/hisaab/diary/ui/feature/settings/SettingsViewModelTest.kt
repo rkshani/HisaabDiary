@@ -1,5 +1,9 @@
 package com.hisaab.diary.ui.feature.settings
 
+import android.net.Uri
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.cash.turbine.test
+import com.hisaab.diary.data.backup.BackupService
 import com.hisaab.diary.domain.fake.FakeSettingsRepository
 import com.hisaab.diary.domain.usecase.DisableAppLockUseCase
 import com.hisaab.diary.domain.usecase.ObserveSettingsUseCase
@@ -9,17 +13,32 @@ import com.hisaab.diary.util.MainDispatcherRule
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class SettingsViewModelTest {
     @get:Rule
     val main = MainDispatcherRule()
 
     private val repo = FakeSettingsRepository()
-    private val vm =
-        SettingsViewModel(ObserveSettingsUseCase(repo), SetPinUseCase(repo), DisableAppLockUseCase(repo), repo)
+    private var backupPassword: String? = "unset"
+    private val backup = object : BackupService {
+        override suspend fun create(target: Uri, password: String?): Boolean {
+            backupPassword = password
+            return true
+        }
+    }
+    private val vm = SettingsViewModel(
+        ObserveSettingsUseCase(repo),
+        SetPinUseCase(repo),
+        DisableAppLockUseCase(repo),
+        repo,
+        backup,
+    )
 
     @Test
     fun enableVerifyAndDisableLock() = runTest {
@@ -46,6 +65,19 @@ class SettingsViewModelTest {
         vm.setBlockScreenshots(true)
         assertTrue(repo.settings.value.hideAmounts)
         assertTrue(repo.settings.value.blockScreenshots)
+    }
+
+    @Test
+    fun backupUsesChosenPasswordAndReportsResult() = runTest {
+        vm.messages.test {
+            vm.startBackup("pw")
+            vm.createBackup(Uri.EMPTY)
+            assertEquals(SettingsMessage.BACKUP_DONE, awaitItem())
+        }
+        assertEquals("pw", backupPassword)
+        vm.startBackup("")
+        vm.createBackup(Uri.EMPTY)
+        assertNull(backupPassword)
     }
 
     @Test
