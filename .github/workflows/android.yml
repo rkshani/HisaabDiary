@@ -55,8 +55,7 @@ jobs:
                       loc = (r.get("locations") or [{}])[0].get("physicalLocation", {})
                       uri = loc.get("artifactLocation", {}).get("uri", "")
                       line = loc.get("region", {}).get("startLine", 1)
-                      msg = r.get("message", {}).get("text", "").replace("
-", " ")
+                      msg = r.get("message", {}).get("text", "").replace(chr(10), " ")
                       print(f"::error file={uri},line={line}::[{r.get('ruleId')}] {msg}")
           for path in glob.glob("app/build/reports/ktlint/**/*.txt", recursive=True):
               for row in open(path):
