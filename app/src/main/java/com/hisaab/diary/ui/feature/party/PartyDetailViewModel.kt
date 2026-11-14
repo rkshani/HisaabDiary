@@ -12,6 +12,7 @@ import com.hisaab.diary.domain.model.PartySummary
 import com.hisaab.diary.domain.usecase.ObserveLedgerUseCase
 import com.hisaab.diary.domain.usecase.ObservePartyUseCase
 import com.hisaab.diary.domain.usecase.RecentlyDeletedEntry
+import com.hisaab.diary.domain.usecase.SettleUpUseCase
 import com.hisaab.diary.domain.usecase.UndoDeleteTransactionUseCase
 import com.hisaab.diary.ui.navigation.PartyDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -42,6 +43,7 @@ class PartyDetailViewModel @Inject constructor(
     private val recentlyDeleted: RecentlyDeletedEntry,
     private val undoDelete: UndoDeleteTransactionUseCase,
     private val attachments: AttachmentStorage,
+    private val settleUpUseCase: SettleUpUseCase,
 ) : ViewModel() {
     val partyId: Long = savedStateHandle.toRoute<PartyDetailRoute>().partyId
 
@@ -62,6 +64,11 @@ class PartyDetailViewModel @Inject constructor(
     fun undo(entry: Entry) {
         recentlyDeleted.clear(entry)
         viewModelScope.launch { undoDelete(entry) }
+    }
+
+    /** Adds the entry that makes the balance zero. The UI confirms first. */
+    fun settleUp(note: String) {
+        viewModelScope.launch { settleUpUseCase(partyId, note) }
     }
 
     /** Undo time is over: the entry is gone for good, so remove its bill photo too. */

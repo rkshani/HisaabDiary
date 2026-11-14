@@ -12,10 +12,12 @@ import com.hisaab.diary.domain.fake.FakeStore
 import com.hisaab.diary.domain.model.Entry
 import com.hisaab.diary.domain.model.EntryType
 import com.hisaab.diary.domain.model.LedgerEntry
+import com.hisaab.diary.domain.usecase.AddTransactionUseCase
 import com.hisaab.diary.domain.usecase.DeleteTransactionUseCase
 import com.hisaab.diary.domain.usecase.ObserveLedgerUseCase
 import com.hisaab.diary.domain.usecase.ObservePartyUseCase
 import com.hisaab.diary.domain.usecase.RecentlyDeletedEntry
+import com.hisaab.diary.domain.usecase.SettleUpUseCase
 import com.hisaab.diary.domain.usecase.UndoDeleteTransactionUseCase
 import com.hisaab.diary.util.MainDispatcherRule
 import java.util.TimeZone
@@ -49,6 +51,7 @@ class PartyDetailViewModelTest {
         recentlyDeleted,
         UndoDeleteTransactionUseCase(entries),
         attachments,
+        SettleUpUseCase(parties, AddTransactionUseCase(entries) { 0 }, { 0 }),
     )
 
     @Test
@@ -105,6 +108,16 @@ class PartyDetailViewModelTest {
         vm.dismissUndo(e)
         assertNull(vm.pendingUndo.value)
         assertEquals(listOf("/bills/a.jpg"), attachments.deleted)
+    }
+
+    @Test
+    fun settleUpMakesBalanceZero() = runTest {
+        val ali = parties.addParty(1, "Ali", null, null)
+        entries.addEntry(entry(ali, EntryType.GAVE, 900, date = DAY))
+        viewModel(ali).settleUp("Settled up")
+        val last = store.entries.value.last()
+        assertEquals(EntryType.GOT, last.type)
+        assertEquals(Money(900), last.amount)
     }
 
     @Test

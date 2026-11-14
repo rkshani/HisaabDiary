@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,6 +26,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,6 +47,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hisaab.diary.R
 import com.hisaab.diary.core.date.DateFormatter
+import com.hisaab.diary.domain.model.BalanceStatus
+import com.hisaab.diary.domain.model.PartySummary
+import com.hisaab.diary.ui.components.formatMoney
 import com.hisaab.diary.ui.feature.party.editor.PartyEditorSheet
 import com.hisaab.diary.ui.theme.HisaabTheme
 
@@ -58,6 +63,7 @@ fun PartyDetailDestination(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showEditor by rememberSaveable { mutableStateOf(false) }
+    var confirmSettle by rememberSaveable { mutableStateOf(false) }
     val currentOnBack by rememberUpdatedState(onBack)
     val snackbarHostState = remember { SnackbarHostState() }
     val pendingUndo by viewModel.pendingUndo.collectAsStateWithLifecycle()
@@ -83,12 +89,24 @@ fun PartyDetailDestination(
         snackbarHostState = snackbarHostState,
         onBack = onBack,
         onEdit = { showEditor = true },
+        onSettleUp = { confirmSettle = true },
         onAddEntry = { isGave -> onAddEntry(viewModel.partyId, isGave) },
         onOpenEntry = { entryId -> onOpenEntry(viewModel.partyId, entryId) },
         modifier = modifier,
     )
 
     val summary = state.summary
+    if (confirmSettle && summary != null) {
+        val note = stringResource(R.string.settle_up_note)
+        SettleUpDialog(
+            summary = summary,
+            onConfirm = {
+                confirmSettle = false
+                viewModel.settleUp(note)
+            },
+            onDismiss = { confirmSettle = false },
+        )
+    }
     if (showEditor && summary != null) {
         PartyEditorSheet(
             bookId = summary.party.bookId,
@@ -107,6 +125,7 @@ fun PartyDetailScreen(
     snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
     onEdit: () -> Unit,
+    onSettleUp: () -> Unit,
     onAddEntry: (isGave: Boolean) -> Unit,
     onOpenEntry: (entryId: Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -124,6 +143,9 @@ fun PartyDetailScreen(
                     }
                 },
                 actions = {
+                    if (state.summary != null && state.summary.status != BalanceStatus.SETTLED) {
+                        TextButton(onClick = onSettleUp) { Text(stringResource(R.string.action_settle_up)) }
+                    }
                     if (state.summary != null) {
                         IconButton(onClick = onEdit) {
                             Icon(painterResource(R.drawable.ic_edit), stringResource(R.string.action_edit_person))
@@ -207,4 +229,27 @@ private fun EntryButtons(onAddEntry: (isGave: Boolean) -> Unit, modifier: Modifi
             ) { Text(stringResource(R.string.action_you_got)) }
         }
     }
+}
+
+@Composable
+private fun SettleUpDialog(
+    summary: PartySummary,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val amount = formatMoney(summary.balance)
+    val body = if (summary.status == BalanceStatus.WILL_GET) {
+        stringResource(R.string.settle_up_body_got, amount, summary.party.name)
+    } else {
+        stringResource(R.string.settle_up_body_gave, amount, summary.party.name)
+    }
+    AlertDialog(
+        modifier = modifier,
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settle_up_title, summary.party.name)) },
+        text = { Text(body) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.action_settle_up)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }
