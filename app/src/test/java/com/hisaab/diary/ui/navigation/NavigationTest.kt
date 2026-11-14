@@ -82,7 +82,7 @@ class NavigationTest {
     fun youGaveOpensNewEntry() {
         compose.onNodeWithText("Ali Raza").performClick()
         compose.onNodeWithText("You gave").performClick()
-        compose.onNodeWithText("New entry").assertIsDisplayed()
+        compose.onNodeWithText("New entry", substring = true).assertIsDisplayed()
     }
 
     private companion object {

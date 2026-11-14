@@ -13,8 +13,6 @@
 
     <!-- Placeholders (removed when the features are built) -->
     <string name="coming_soon">Coming soon</string>
-    <string name="party_title">Party #%1$d</string>
-    <string name="add_entry_title">New entry</string>
 
     <!-- Home summary -->
     <string name="summary_will_get">You will get</string>
@@ -24,7 +22,6 @@
     <string name="summary_net_settled">Net: all settled</string>
 
     <!-- Party list -->
-    <string name="parties_header">People (%1$d)</string>
     <string name="party_no_entries">No entries yet</string>
     <string name="status_will_get">You will get</string>
     <string name="status_will_give">You will give</string>
@@ -65,6 +62,35 @@
     <string name="action_unarchive">Unarchive</string>
     <string name="delete_party_title">Delete this person?</string>
     <string name="delete_party_body">All entries of %1$s will be deleted. This cannot be undone.</string>
+
+    <!-- Party khata (ledger) -->
+    <string name="action_edit_person">Edit person</string>
+    <string name="balance_will_get">You will get</string>
+    <string name="balance_will_give">You will give</string>
+    <string name="balance_settled">All settled</string>
+    <string name="ledger_column_entry">Entry</string>
+    <string name="ledger_balance_after">Bal. %1$s</string>
+    <string name="ledger_empty">No entries yet. Tap \"You gave\" or \"You got\" to add one.</string>
+
+    <!-- Add entry -->
+    <string name="add_entry_for">New entry · %1$s</string>
+    <string name="edit_entry_for">Edit entry · %1$s</string>
+    <string name="action_delete_entry">Delete entry</string>
+    <string name="entry_deleted">Entry deleted</string>
+    <string name="action_undo">Undo</string>
+    <string name="field_entry_note">Note (e.g. chai, rent, loan)</string>
+    <string name="amount_result">= %1$s</string>
+    <string name="entry_date">Date: %1$s</string>
+    <string name="add_due_date">Add due date</string>
+    <string name="due_date">Due: %1$s</string>
+    <string name="key_backspace">Delete digit</string>
+    <string name="action_ok">OK</string>
+    <string name="action_remove">Remove</string>
+    <string name="error_amount_zero">Please enter an amount more than 0.</string>
+    <string name="error_amount_too_big">This amount is too big.</string>
+    <string name="error_due_before_date">Due date cannot be before the entry date.</string>
+    <string name="error_note_too_long">Note is too long (max 200 letters).</string>
+    <string name="error_entry_not_found">This entry was deleted.</string>
 
     <!-- Entry types -->
     <string name="action_you_gave">You gave</string>

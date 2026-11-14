@@ -62,6 +62,20 @@ class DateUtilsTest {
         assertEquals(millis(2026, Calendar.MARCH, 30, 12, zone = london), dst.plusDays(base, 2))
     }
 
+    @Test
+    fun `picker millis convert both ways`() {
+        val utcMidnight = millis(2026, Calendar.NOVEMBER, 20, zone = TimeZone.getTimeZone("UTC"))
+        val local = utils.fromPickerMillis(utcMidnight)
+        assertEquals(millis(2026, Calendar.NOVEMBER, 20), local)
+        assertEquals(utcMidnight, utils.toPickerMillis(local + 5 * 60 * 60 * 1000))
+    }
+
+    @Test
+    fun `atCurrentTime keeps time of now on another day`() {
+        val day = millis(2026, Calendar.NOVEMBER, 10)
+        assertEquals(millis(2026, Calendar.NOVEMBER, 10, 15, 30, 20, 500), utils.atCurrentTime(day))
+    }
+
     private fun millis(
         year: Int,
         month: Int,

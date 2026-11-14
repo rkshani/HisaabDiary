@@ -37,7 +37,31 @@ jobs:
         run: ./gradlew lint
 
       - name: ktlint and detekt
-        run: ./gradlew ktlintCheck detekt
+        # Run even when Lint failed, so we see all problems at once.
+        if: ${{ !cancelled() }}
+        run: ./gradlew ktlintCheck detekt --continue
+
+      - name: Show lint, ktlint and detekt problems as annotations
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          import glob, json, os
+          for path in glob.glob("app/build/reports/**/*.sarif", recursive=True):
+              data = json.load(open(path))
+              for run in data.get("runs", []):
+                  for r in run.get("results", []):
+                      if r.get("level") == "note" or r.get("ruleId") == "LintBaseline":
+                          continue
+                      loc = (r.get("locations") or [{}])[0].get("physicalLocation", {})
+                      uri = loc.get("artifactLocation", {}).get("uri", "")
+                      line = loc.get("region", {}).get("startLine", 1)
+                      msg = r.get("message", {}).get("text", "").replace(chr(10), " ")
+                      print(f"::error file={uri},line={line}::[{r.get('ruleId')}] {msg}")
+          for path in glob.glob("app/build/reports/ktlint/**/*.txt", recursive=True):
+              for row in open(path):
+                  if row.strip():
+                      print(f"::error::{row.strip()}")
+          PY
 
       - name: Upload reports
         if: always()
