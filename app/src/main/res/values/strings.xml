@@ -249,6 +249,23 @@
         <item quantity="other">You have not taken a backup for %d days.</item>
     </plurals>
 
+    <!-- Settings: appearance and about -->
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_system">Same as phone</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="settings_dynamic_color">Wallpaper colors</string>
+    <string name="settings_dynamic_color_desc">Use colors from your wallpaper (Android 12+).</string>
+    <string name="settings_currency">Currency sign</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_rate">Rate the app</string>
+    <string name="settings_rate_desc">Opens the Play Store.</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="privacy_policy_short">No account, no internet, no data leaves your phone.</string>
+    <string name="privacy_policy_text">Hisaab Diary works fully offline. It has no internet permission, no account, no ads and no analytics. Your books, people, entries and photos are saved only on this phone. Backups are files you save yourself, where you choose. Contacts are read only when you pick one person in the contact picker. Nothing is shared unless you share it yourself (for example a reminder or a PDF).</string>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>

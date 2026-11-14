@@ -3,6 +3,7 @@ package com.hisaab.diary.ui.feature.settings
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Process
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -47,13 +48,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hisaab.diary.BuildConfig
 import com.hisaab.diary.R
 import com.hisaab.diary.core.date.DateFormatter
+import com.hisaab.diary.core.money.CurrencySymbol
+import com.hisaab.diary.core.money.Money
+import com.hisaab.diary.core.money.MoneyFormatter
 import com.hisaab.diary.core.security.PinHasher
 import com.hisaab.diary.data.backup.BackupManager
 import com.hisaab.diary.domain.model.AppSettings
+import com.hisaab.diary.domain.model.ThemeMode
 import com.hisaab.diary.ui.MainActivity
 import com.hisaab.diary.ui.feature.entry.Keypad
 import com.hisaab.diary.ui.feature.lock.PinDots
@@ -110,6 +117,10 @@ fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewMo
             },
             onRestoreBackup = { runCatching { openBackup.launch(arrayOf("*/*")) } },
             onBackupReminderChange = viewModel::setBackupReminderDays,
+            onThemeChange = viewModel::setThemeMode,
+            onDynamicColorChange = viewModel::setDynamicColor,
+            onCurrencyChange = viewModel::setCurrencySymbol,
+            onRateApp = { openPlayStore(context) },
         ),
         modifier = modifier,
     )
@@ -126,6 +137,10 @@ class SettingsActions(
     val onCreateBackup: (password: String?) -> Unit,
     val onRestoreBackup: () -> Unit,
     val onBackupReminderChange: (Int) -> Unit,
+    val onThemeChange: (ThemeMode) -> Unit,
+    val onDynamicColorChange: (Boolean) -> Unit,
+    val onCurrencyChange: (CurrencySymbol) -> Unit,
+    val onRateApp: () -> Unit,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -141,6 +156,9 @@ fun SettingsScreen(
     var pickTimeout by rememberSaveable { mutableStateOf(false) }
     var askBackupPassword by rememberSaveable { mutableStateOf(false) }
     var pickBackupDays by rememberSaveable { mutableStateOf(false) }
+    var pickTheme by rememberSaveable { mutableStateOf(false) }
+    var pickCurrency by rememberSaveable { mutableStateOf(false) }
+    var showPrivacy by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         modifier = modifier,
         topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_settings)) }) },
@@ -152,6 +170,13 @@ fun SettingsScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState()),
         ) {
+            AppearanceSection(
+                settings = settings,
+                onPickTheme = { pickTheme = true },
+                onPickCurrency = { pickCurrency = true },
+                onDynamicColorChange = actions.onDynamicColorChange,
+            )
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
             SectionTitle(stringResource(R.string.settings_security))
             SwitchRow(
                 title = stringResource(R.string.settings_app_lock),
@@ -206,9 +231,61 @@ fun SettingsScreen(
                 onClick = { pickBackupDays = true },
             )
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            SectionTitle(stringResource(R.string.settings_about))
+            ClickRow(
+                title = stringResource(R.string.settings_version),
+                subtitle = BuildConfig.VERSION_NAME,
+                onClick = {},
+            )
+            ClickRow(
+                title = stringResource(R.string.privacy_policy),
+                subtitle = stringResource(R.string.privacy_policy_short),
+                onClick = { showPrivacy = true },
+            )
+            ClickRow(
+                title = stringResource(R.string.settings_rate),
+                subtitle = stringResource(R.string.settings_rate_desc),
+                onClick = actions.onRateApp,
+            )
         }
     }
 
+    if (pickTheme) {
+        ChoiceDialog(
+            title = stringResource(R.string.settings_theme),
+            options = ThemeMode.entries.map { it.ordinal },
+            selected = settings.themeMode.ordinal,
+            label = { stringResource(themeLabel(ThemeMode.entries[it])) },
+            onSelect = {
+                pickTheme = false
+                actions.onThemeChange(ThemeMode.entries[it])
+            },
+            onDismiss = { pickTheme = false },
+        )
+    }
+    if (pickCurrency) {
+        ChoiceDialog(
+            title = stringResource(R.string.settings_currency),
+            options = CurrencySymbol.entries.map { it.ordinal },
+            selected = settings.currencySymbol.ordinal,
+            label = { MoneyFormatter(CurrencySymbol.entries[it]).format(SAMPLE_AMOUNT) },
+            onSelect = {
+                pickCurrency = false
+                actions.onCurrencyChange(CurrencySymbol.entries[it])
+            },
+            onDismiss = { pickCurrency = false },
+        )
+    }
+    if (showPrivacy) {
+        AlertDialog(
+            onDismissRequest = { showPrivacy = false },
+            title = { Text(stringResource(R.string.privacy_policy)) },
+            text = { Text(stringResource(R.string.privacy_policy_text)) },
+            confirmButton = {
+                TextButton(onClick = { showPrivacy = false }) { Text(stringResource(R.string.action_ok)) }
+            },
+        )
+    }
     if (pickBackupDays) {
         ChoiceDialog(
             title = stringResource(R.string.backup_reminder),
@@ -546,4 +623,53 @@ private fun ChoiceDialog(
         confirmButton = {},
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
+}
+
+@Composable
+private fun AppearanceSection(
+    settings: AppSettings,
+    onPickTheme: () -> Unit,
+    onPickCurrency: () -> Unit,
+    onDynamicColorChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        SectionTitle(stringResource(R.string.settings_appearance))
+        ClickRow(
+            title = stringResource(R.string.settings_theme),
+            subtitle = stringResource(themeLabel(settings.themeMode)),
+            onClick = onPickTheme,
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            SwitchRow(
+                title = stringResource(R.string.settings_dynamic_color),
+                subtitle = stringResource(R.string.settings_dynamic_color_desc),
+                checked = settings.dynamicColor,
+                onCheckedChange = onDynamicColorChange,
+            )
+        }
+        ClickRow(
+            title = stringResource(R.string.settings_currency),
+            subtitle = MoneyFormatter(settings.currencySymbol).format(SAMPLE_AMOUNT),
+            onClick = onPickCurrency,
+        )
+    }
+}
+
+private fun themeLabel(mode: ThemeMode): Int = when (mode) {
+    ThemeMode.SYSTEM -> R.string.theme_system
+    ThemeMode.LIGHT -> R.string.theme_light
+    ThemeMode.DARK -> R.string.theme_dark
+}
+
+private val SAMPLE_AMOUNT = Money(125_050)
+
+/** Opens the Play Store page (the user's choice; the app itself never goes online). */
+private fun openPlayStore(context: Context) {
+    val market = Intent(Intent.ACTION_VIEW, "market://details?id=${context.packageName}".toUri())
+    val web = Intent(
+        Intent.ACTION_VIEW,
+        "https://play.google.com/store/apps/details?id=${context.packageName}".toUri(),
+    )
+    runCatching { context.startActivity(market) }.recoverCatching { context.startActivity(web) }
 }

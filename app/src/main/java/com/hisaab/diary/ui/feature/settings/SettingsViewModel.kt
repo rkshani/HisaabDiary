@@ -3,9 +3,11 @@ package com.hisaab.diary.ui.feature.settings
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hisaab.diary.core.money.CurrencySymbol
 import com.hisaab.diary.data.backup.BackupService
 import com.hisaab.diary.data.backup.RestoreResult
 import com.hisaab.diary.domain.model.AppSettings
+import com.hisaab.diary.domain.model.ThemeMode
 import com.hisaab.diary.domain.repository.SettingsRepository
 import com.hisaab.diary.domain.usecase.DisableAppLockUseCase
 import com.hisaab.diary.domain.usecase.ObserveSettingsUseCase
@@ -107,6 +109,12 @@ class SettingsViewModel @Inject constructor(
     fun setLockTimeout(seconds: Int) = launch { settingsRepository.setLockTimeoutSeconds(seconds) }
 
     fun setBackupReminderDays(days: Int) = launch { settingsRepository.setBackupReminderDays(days) }
+
+    fun setThemeMode(mode: ThemeMode) = launch { settingsRepository.setThemeMode(mode) }
+
+    fun setDynamicColor(enabled: Boolean) = launch { settingsRepository.setDynamicColor(enabled) }
+
+    fun setCurrencySymbol(symbol: CurrencySymbol) = launch { settingsRepository.setCurrencySymbol(symbol) }
 
     fun setHideAmounts(hide: Boolean) = launch { settingsRepository.setHideAmounts(hide) }
 
