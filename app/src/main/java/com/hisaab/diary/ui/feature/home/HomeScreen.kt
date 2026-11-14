@@ -11,6 +11,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -36,7 +37,12 @@ import com.hisaab.diary.ui.feature.party.editor.PartyEditorSheet
 import com.hisaab.diary.ui.theme.HisaabTheme
 
 @Composable
-fun HomeRoute(onOpenParty: (Long) -> Unit, modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeRoute(
+    onOpenParty: (Long) -> Unit,
+    onOpenReminders: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showAddSheet by rememberSaveable { mutableStateOf(false) }
     HomeScreen(
@@ -44,6 +50,7 @@ fun HomeRoute(onOpenParty: (Long) -> Unit, modifier: Modifier = Modifier, viewMo
         onEvent = viewModel::onEvent,
         onOpenParty = onOpenParty,
         onAddParty = { showAddSheet = true },
+        onOpenReminders = onOpenReminders,
         modifier = modifier,
     )
     if (showAddSheet && !state.isLoading) {
@@ -66,12 +73,20 @@ fun HomeScreen(
     onEvent: (HomeEvent) -> Unit,
     onOpenParty: (Long) -> Unit,
     onAddParty: () -> Unit,
+    onOpenReminders: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(title = { Text(state.bookName.ifEmpty { stringResource(R.string.app_name) }) })
+            TopAppBar(
+                title = { Text(state.bookName.ifEmpty { stringResource(R.string.app_name) }) },
+                actions = {
+                    IconButton(onClick = onOpenReminders) {
+                        Icon(painterResource(R.drawable.ic_notification), stringResource(R.string.reminders_title))
+                    }
+                },
+            )
         },
         floatingActionButton = {
             if (state.hasAnyParty) {
@@ -142,6 +157,7 @@ private fun HomeScreenEmptyPreview() {
             onEvent = {},
             onOpenParty = {},
             onAddParty = {},
+            onOpenReminders = {},
         )
     }
 }

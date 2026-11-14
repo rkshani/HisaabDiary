@@ -13,6 +13,9 @@ data object ReportsRoute
 data object SettingsRoute
 
 @Serializable
+data object RemindersRoute
+
+@Serializable
 data class PartyDetailRoute(val partyId: Long)
 
 /**
