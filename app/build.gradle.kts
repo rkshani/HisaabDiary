@@ -65,7 +65,7 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
         unitTests.all {
-            it.maxHeapSize = "1g"
+            it.maxHeapSize = "768m"
             it.maxParallelForks = 1
         }
     }
