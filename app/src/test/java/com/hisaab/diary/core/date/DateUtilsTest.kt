@@ -62,7 +62,6 @@ class DateUtilsTest {
         assertEquals(millis(2026, Calendar.MARCH, 30, 12, zone = london), dst.plusDays(base, 2))
     }
 
-    @Suppress("LongParameterList")
     private fun millis(
         year: Int,
         month: Int,

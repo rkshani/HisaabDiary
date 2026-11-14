@@ -2,6 +2,9 @@
 <resources>
     <string name="app_name">Hisaab Diary</string>
 
+    <!-- Name of the first book, made on the first launch -->
+    <string name="default_book_name">Personal</string>
+
     <!-- Navigation -->
     <string name="nav_home">Home</string>
     <string name="nav_reports">Reports</string>
