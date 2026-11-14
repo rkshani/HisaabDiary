@@ -8,15 +8,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,23 +32,31 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hisaab.diary.R
 import com.hisaab.diary.core.money.Money
 import com.hisaab.diary.domain.model.BookTotals
+import com.hisaab.diary.ui.feature.party.editor.PartyEditorSheet
 import com.hisaab.diary.ui.theme.HisaabTheme
 
 @Composable
-fun HomeRoute(
-    onOpenParty: (Long) -> Unit,
-    onAddParty: () -> Unit,
-    modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel(),
-) {
+fun HomeRoute(onOpenParty: (Long) -> Unit, modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var showAddSheet by rememberSaveable { mutableStateOf(false) }
     HomeScreen(
         state = state,
         onEvent = viewModel::onEvent,
         onOpenParty = onOpenParty,
-        onAddParty = onAddParty,
+        onAddParty = { showAddSheet = true },
         modifier = modifier,
     )
+    if (showAddSheet && !state.isLoading) {
+        PartyEditorSheet(
+            bookId = state.bookId,
+            partyId = null,
+            onDismiss = { showAddSheet = false },
+            onSave = { partyId, _ ->
+                showAddSheet = false
+                onOpenParty(partyId)
+            },
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,6 +72,15 @@ fun HomeScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(title = { Text(state.bookName.ifEmpty { stringResource(R.string.app_name) }) })
+        },
+        floatingActionButton = {
+            if (state.hasAnyParty) {
+                ExtendedFloatingActionButton(
+                    onClick = onAddParty,
+                    icon = { Icon(painterResource(R.drawable.ic_add), contentDescription = null) },
+                    text = { Text(stringResource(R.string.action_add_person)) },
+                )
+            }
         },
     ) { padding ->
         val totals = state.totals
