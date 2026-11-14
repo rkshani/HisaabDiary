@@ -92,6 +92,13 @@
     <string name="error_note_too_long">Note is too long (max 200 letters).</string>
     <string name="error_entry_not_found">This entry was deleted.</string>
 
+    <!-- Settle up -->
+    <string name="action_settle_up">Settle up</string>
+    <string name="settle_up_title">Settle up with %1$s?</string>
+    <string name="settle_up_body_got">This adds \"You got %1$s\" from %2$s, so the balance becomes 0.</string>
+    <string name="settle_up_body_gave">This adds \"You gave %1$s\" to %2$s, so the balance becomes 0.</string>
+    <string name="settle_up_note">Settled up</string>
+
     <!-- Bill photo -->
     <string name="bill_photo">Bill photo</string>
     <string name="action_take_photo">Camera</string>
