@@ -240,7 +240,11 @@ fun PartyDetailScreen(
                     )
                 }
                 items(day.entries, key = { it.entry.id }) { item ->
-                    LedgerRow(item = item, onClick = { onOpenEntry(item.entry.id) })
+                    LedgerRow(
+                        item = item,
+                        onClick = { onOpenEntry(item.entry.id) },
+                        modifier = Modifier.animateItem(),
+                    )
                     HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                 }
             }

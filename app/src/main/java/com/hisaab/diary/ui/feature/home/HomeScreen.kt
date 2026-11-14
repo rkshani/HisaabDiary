@@ -162,7 +162,11 @@ fun HomeScreen(
                 }
             }
             items(state.parties, key = { it.party.id }) { summary ->
-                PartyRow(summary = summary, onClick = { onOpenParty(summary.party.id) })
+                PartyRow(
+                    summary = summary,
+                    onClick = { onOpenParty(summary.party.id) },
+                    modifier = Modifier.animateItem(),
+                )
                 HorizontalDivider(Modifier.padding(start = 72.dp))
             }
         }
