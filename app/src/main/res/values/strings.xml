@@ -266,6 +266,17 @@
     <string name="privacy_policy_short">No account, no internet, no data leaves your phone.</string>
     <string name="privacy_policy_text">Hisaab Diary works fully offline. It has no internet permission, no account, no ads and no analytics. Your books, people, entries and photos are saved only on this phone. Backups are files you save yourself, where you choose. Contacts are read only when you pick one person in the contact picker. Nothing is shared unless you share it yourself (for example a reminder or a PDF).</string>
 
+    <!-- Onboarding -->
+    <string name="intro_private_title">Offline and private</string>
+    <string name="intro_private_body">Your khata stays on your phone. No account, no internet, no ads.</string>
+    <string name="intro_easy_title">Easy khata</string>
+    <string name="intro_easy_body">Add people, tap \"You gave\" or \"You got\", and always see who owes what.</string>
+    <string name="intro_reminders_title">Reminders</string>
+    <string name="intro_reminders_body">Set a due date and send a polite reminder on WhatsApp or SMS.</string>
+    <string name="intro_skip">Skip</string>
+    <string name="intro_next">Next</string>
+    <string name="intro_start">Start</string>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>

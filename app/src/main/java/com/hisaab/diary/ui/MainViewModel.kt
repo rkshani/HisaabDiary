@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.hisaab.diary.core.date.Clock
 import com.hisaab.diary.core.security.LockPolicy
 import com.hisaab.diary.domain.model.AppSettings
+import com.hisaab.diary.domain.usecase.CompleteOnboardingUseCase
 import com.hisaab.diary.domain.usecase.ObserveSettingsUseCase
 import com.hisaab.diary.domain.usecase.VerifyPinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +26,7 @@ class MainViewModel @Inject constructor(
     observeSettings: ObserveSettingsUseCase,
     private val verifyPin: VerifyPinUseCase,
     private val clock: Clock,
+    private val completeOnboarding: CompleteOnboardingUseCase,
 ) : ViewModel() {
     private val loaded = observeSettings()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -72,6 +74,10 @@ class MainViewModel @Inject constructor(
 
     fun clearWrongPin() {
         _wrongPin.value = false
+    }
+
+    fun finishOnboarding() {
+        viewModelScope.launch { completeOnboarding() }
     }
 
     /** Called after a successful fingerprint/face check. */

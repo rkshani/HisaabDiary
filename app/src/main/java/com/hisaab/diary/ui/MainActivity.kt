@@ -24,6 +24,7 @@ import com.hisaab.diary.core.money.MoneyFormatter
 import com.hisaab.diary.domain.model.ThemeMode
 import com.hisaab.diary.ui.components.LocalMoneyFormatter
 import com.hisaab.diary.ui.feature.lock.LockScreen
+import com.hisaab.diary.ui.feature.onboarding.OnboardingScreen
 import com.hisaab.diary.ui.theme.HisaabTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -65,7 +66,11 @@ class MainActivity : FragmentActivity() {
                             onBiometricClick = ::showBiometricPrompt,
                         )
 
-                        LockState.UNLOCKED -> HisaabRoot()
+                        LockState.UNLOCKED -> if (settings.onboardingDone) {
+                            HisaabRoot()
+                        } else {
+                            OnboardingScreen(onFinish = viewModel::finishOnboarding)
+                        }
                     }
                 }
             }
