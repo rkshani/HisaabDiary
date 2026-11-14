@@ -1,0 +1,4 @@
+# Baseline profile: pre-compile the app's own code for a faster first start.
+# Installed by androidx.profileinstaller. A generated profile can replace this later.
+HSPLcom/hisaab/diary/**->**(**)**
+Lcom/hisaab/diary/**;
