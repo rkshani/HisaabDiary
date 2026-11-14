@@ -111,6 +111,12 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun backupReminderDaysAreSaved() {
+        vm.setBackupReminderDays(14)
+        assertEquals(14, repo.settings.value.backupReminderDays)
+    }
+
+    @Test
     fun badPinIsIgnored() = runTest {
         vm.enableLock("12")
         assertFalse(repo.settings.value.isLockEnabled)

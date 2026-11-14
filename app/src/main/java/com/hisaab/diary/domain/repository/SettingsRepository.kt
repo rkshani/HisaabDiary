@@ -28,4 +28,8 @@ interface SettingsRepository {
     suspend fun setHideAmounts(hide: Boolean)
 
     suspend fun setBlockScreenshots(block: Boolean)
+
+    suspend fun setLastBackupAt(time: Long)
+
+    suspend fun setBackupReminderDays(days: Int)
 }

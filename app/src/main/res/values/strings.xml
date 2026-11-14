@@ -233,6 +233,19 @@
     <string name="restore_newer_version">This backup is from a newer app version. Please update the app first.</string>
     <string name="restore_failed">Could not restore the backup.</string>
 
+    <!-- Backup reminder -->
+    <string name="backup_reminder">Backup reminder</string>
+    <string name="backup_reminder_off">Off</string>
+    <plurals name="backup_reminder_every">
+        <item quantity="one">If no backup for %d day</item>
+        <item quantity="other">If no backup for %d days</item>
+    </plurals>
+    <string name="notification_backup_title">Time to take a backup</string>
+    <plurals name="notification_backup_days">
+        <item quantity="one">You have not taken a backup for %d day.</item>
+        <item quantity="other">You have not taken a backup for %d days.</item>
+    </plurals>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>

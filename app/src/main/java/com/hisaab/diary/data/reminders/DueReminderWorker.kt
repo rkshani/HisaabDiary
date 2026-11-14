@@ -23,6 +23,7 @@ import com.hisaab.diary.core.date.DateUtils
 import com.hisaab.diary.core.money.MoneyFormatter
 import com.hisaab.diary.domain.model.BalanceStatus
 import com.hisaab.diary.domain.model.Reminder
+import com.hisaab.diary.domain.usecase.CheckBackupReminderUseCase
 import com.hisaab.diary.domain.usecase.GetDueRemindersUseCase
 import com.hisaab.diary.ui.MainActivity
 import dagger.hilt.EntryPoint
@@ -39,6 +40,8 @@ class DueReminderWorker(context: Context, params: WorkerParameters) : CoroutineW
         fun getDueReminders(): GetDueRemindersUseCase
 
         fun dateUtils(): DateUtils
+
+        fun checkBackupReminder(): CheckBackupReminderUseCase
     }
 
     override suspend fun doWork(): Result {
@@ -46,6 +49,9 @@ class DueReminderWorker(context: Context, params: WorkerParameters) : CoroutineW
         val due = deps.getDueReminders().invoke()
         if (due.isNotEmpty() && canNotify(applicationContext)) {
             ReminderNotifications.show(applicationContext, due, deps.dateUtils())
+        }
+        deps.checkBackupReminder().invoke()?.let { days ->
+            if (canNotify(applicationContext)) ReminderNotifications.showBackup(applicationContext, days)
         }
         return Result.success()
     }
@@ -78,6 +84,29 @@ class DueReminderWorker(context: Context, params: WorkerParameters) : CoroutineW
 /** Builds and posts the due-date notifications. */
 object ReminderNotifications {
     private const val CHANNEL_ID = "dues"
+
+    private const val BACKUP_NOTIFICATION_ID = -1
+
+    /** "You have not taken a backup for 7 days". */
+    @SuppressLint("MissingPermission")
+    fun showBackup(context: Context, days: Int) {
+        if (!DueReminderWorker.canNotify(context)) return
+        createChannel(context)
+        val openApp = PendingIntent.getActivity(
+            context,
+            1,
+            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(context.getString(R.string.notification_backup_title))
+            .setContentText(context.resources.getQuantityString(R.plurals.notification_backup_days, days, days))
+            .setContentIntent(openApp)
+            .setAutoCancel(true)
+            .build()
+        NotificationManagerCompat.from(context).notify(BACKUP_NOTIFICATION_ID, notification)
+    }
 
     fun createChannel(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return

@@ -33,4 +33,8 @@ class FakeSettingsRepository(initial: AppSettings = AppSettings()) : SettingsRep
     override suspend fun setHideAmounts(hide: Boolean) = settings.update { it.copy(hideAmounts = hide) }
 
     override suspend fun setBlockScreenshots(block: Boolean) = settings.update { it.copy(blockScreenshots = block) }
+
+    override suspend fun setLastBackupAt(time: Long) = settings.update { it.copy(lastBackupAt = time) }
+
+    override suspend fun setBackupReminderDays(days: Int) = settings.update { it.copy(backupReminderDays = days) }
 }
