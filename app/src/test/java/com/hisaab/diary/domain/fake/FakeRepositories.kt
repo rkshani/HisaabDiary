@@ -119,6 +119,8 @@ class FakeEntryRepository(private val store: FakeStore) : EntryRepository {
 
     override suspend fun restoreEntry(entry: Entry) = store.entries.update { it + entry }
 
+    override suspend fun addEntries(entries: List<Entry>) = entries.forEach { addEntry(it) }
+
     override suspend fun getForExport(bookId: Long?): List<ExportRow> = store.entries.value
         .sortedWith(compareBy({ it.date }, { it.id }))
         .mapNotNull { entry ->

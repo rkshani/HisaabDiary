@@ -6,10 +6,15 @@ import app.cash.turbine.test
 import com.hisaab.diary.core.money.CurrencySymbol
 import com.hisaab.diary.data.backup.BackupService
 import com.hisaab.diary.data.backup.RestoreResult
+import com.hisaab.diary.domain.fake.FakeBookRepository
+import com.hisaab.diary.domain.fake.FakeEntryRepository
+import com.hisaab.diary.domain.fake.FakePartyRepository
 import com.hisaab.diary.domain.fake.FakeSettingsRepository
+import com.hisaab.diary.domain.fake.FakeStore
 import com.hisaab.diary.domain.model.ThemeMode
 import com.hisaab.diary.domain.usecase.DisableAppLockUseCase
 import com.hisaab.diary.domain.usecase.ObserveSettingsUseCase
+import com.hisaab.diary.domain.usecase.SeedTestDataUseCase
 import com.hisaab.diary.domain.usecase.SetPinUseCase
 import com.hisaab.diary.domain.usecase.VerifyPinUseCase
 import com.hisaab.diary.util.MainDispatcherRule
@@ -28,6 +33,7 @@ class SettingsViewModelTest {
     val main = MainDispatcherRule()
 
     private val repo = FakeSettingsRepository()
+    private val store = FakeStore()
     private var backupPassword: String? = "unset"
     private var encrypted: Boolean? = true
     private val backup = object : BackupService {
@@ -50,6 +56,14 @@ class SettingsViewModelTest {
             DisableAppLockUseCase(repo),
             repo,
             backup,
+            SeedTestDataUseCase(
+                FakeBookRepository(store),
+                FakePartyRepository(store),
+                FakeEntryRepository(store),
+                repo,
+            ) {
+                0
+            },
         )
     }
 
