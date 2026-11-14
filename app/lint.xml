@@ -12,4 +12,8 @@
     <issue id="GradleDependency" severity="ignore" />
     <issue id="NewerVersionAvailable" severity="ignore" />
     <issue id="AndroidGradlePluginVersion" severity="ignore" />
+    <!-- We only read the EXIF orientation of a photo the user picked; no new library needed. -->
+    <issue id="ExifInterface">
+        <ignore path="**/data/files/AttachmentStorage.kt" />
+    </issue>
 </lint>
