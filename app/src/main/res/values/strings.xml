@@ -124,6 +124,21 @@
     <string name="action_snooze">Remind tomorrow</string>
     <string name="action_mark_done">Done</string>
 
+    <!-- Reports -->
+    <string name="range_today">Today</string>
+    <string name="range_week">This week</string>
+    <string name="range_month">This month</string>
+    <string name="range_custom">Pick dates</string>
+    <string name="report_period">%1$s – %2$s</string>
+    <string name="report_total_gave">You gave</string>
+    <string name="report_total_got">You got</string>
+    <string name="report_net">Net</string>
+    <string name="report_entries">Entries (%1$d)</string>
+    <string name="report_empty">No entries in these dates.</string>
+    <string name="report_row_gave">Gave %1$s</string>
+    <string name="report_row_got">Got %1$s</string>
+    <string name="chart_description">Chart. Total you gave %1$s, total you got %2$s.</string>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>

@@ -63,6 +63,12 @@ class DateUtilsTest {
     }
 
     @Test
+    fun `days between two dates`() {
+        assertEquals(0, utils.daysBetween(now, now + 1000))
+        assertEquals(30, utils.daysBetween(millis(2026, Calendar.NOVEMBER, 1), millis(2026, Calendar.DECEMBER, 1, 5)))
+    }
+
+    @Test
     fun `picker millis convert both ways`() {
         val utcMidnight = millis(2026, Calendar.NOVEMBER, 20, zone = TimeZone.getTimeZone("UTC"))
         val local = utils.fromPickerMillis(utcMidnight)
