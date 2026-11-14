@@ -33,6 +33,12 @@ class MoneyFormatterTest {
     }
 
     @Test
+    fun `hidden mode shows stars`() {
+        assertEquals("Rs ****", MoneyFormatter(CurrencySymbol.RS, hidden = true).format(Money(125_050)))
+        assertEquals("1250.50", MoneyFormatter(CurrencySymbol.RS, hidden = true).formatForInput(Money(125_050)))
+    }
+
+    @Test
     fun `always show paisa`() {
         assertEquals("Rs 10.00", rs.format(Money.ofRupees(10), alwaysShowPaisa = true))
     }

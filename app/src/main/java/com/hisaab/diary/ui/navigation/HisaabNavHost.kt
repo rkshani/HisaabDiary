@@ -10,7 +10,7 @@ import com.hisaab.diary.ui.feature.home.HomeRoute
 import com.hisaab.diary.ui.feature.party.PartyDetailDestination
 import com.hisaab.diary.ui.feature.reminders.RemindersDestination
 import com.hisaab.diary.ui.feature.reports.ReportsDestination
-import com.hisaab.diary.ui.feature.settings.SettingsScreen
+import com.hisaab.diary.ui.feature.settings.SettingsDestination
 
 @Composable
 fun HisaabNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -32,7 +32,7 @@ fun HisaabNavHost(navController: NavHostController, modifier: Modifier = Modifie
             )
         }
         composable<ReportsRoute> { ReportsDestination() }
-        composable<SettingsRoute> { SettingsScreen() }
+        composable<SettingsRoute> { SettingsDestination() }
         composable<PartyDetailRoute> {
             PartyDetailDestination(
                 onBack = navController::popBackStack,

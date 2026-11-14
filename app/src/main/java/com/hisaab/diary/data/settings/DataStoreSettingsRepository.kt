@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.hisaab.diary.core.money.CurrencySymbol
@@ -36,6 +37,25 @@ class DataStoreSettingsRepository @Inject constructor(private val dataStore: Dat
 
     override suspend fun setOnboardingDone(done: Boolean) = edit { it[Keys.ONBOARDING_DONE] = done }
 
+    override suspend fun setPin(hash: String?, salt: String?) = edit {
+        if (hash == null || salt == null) {
+            it.remove(Keys.PIN_HASH)
+            it.remove(Keys.PIN_SALT)
+            it.remove(Keys.BIOMETRIC)
+        } else {
+            it[Keys.PIN_HASH] = hash
+            it[Keys.PIN_SALT] = salt
+        }
+    }
+
+    override suspend fun setBiometricEnabled(enabled: Boolean) = edit { it[Keys.BIOMETRIC] = enabled }
+
+    override suspend fun setLockTimeoutSeconds(seconds: Int) = edit { it[Keys.LOCK_TIMEOUT] = seconds }
+
+    override suspend fun setHideAmounts(hide: Boolean) = edit { it[Keys.HIDE_AMOUNTS] = hide }
+
+    override suspend fun setBlockScreenshots(block: Boolean) = edit { it[Keys.BLOCK_SCREENSHOTS] = block }
+
     private suspend fun edit(block: (MutablePreferences) -> Unit) {
         dataStore.edit { block(it) }
     }
@@ -48,6 +68,12 @@ class DataStoreSettingsRepository @Inject constructor(private val dataStore: Dat
             dynamicColor = this[Keys.DYNAMIC_COLOR] ?: defaults.dynamicColor,
             currencySymbol = enumOrDefault(this[Keys.CURRENCY], defaults.currencySymbol),
             onboardingDone = this[Keys.ONBOARDING_DONE] ?: defaults.onboardingDone,
+            pinHash = this[Keys.PIN_HASH],
+            pinSalt = this[Keys.PIN_SALT],
+            biometricEnabled = this[Keys.BIOMETRIC] ?: defaults.biometricEnabled,
+            lockTimeoutSeconds = this[Keys.LOCK_TIMEOUT] ?: defaults.lockTimeoutSeconds,
+            hideAmounts = this[Keys.HIDE_AMOUNTS] ?: defaults.hideAmounts,
+            blockScreenshots = this[Keys.BLOCK_SCREENSHOTS] ?: defaults.blockScreenshots,
         )
     }
 
@@ -60,5 +86,11 @@ class DataStoreSettingsRepository @Inject constructor(private val dataStore: Dat
         val DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
         val CURRENCY = stringPreferencesKey("currency_symbol")
         val ONBOARDING_DONE = booleanPreferencesKey("onboarding_done")
+        val PIN_HASH = stringPreferencesKey("pin_hash")
+        val PIN_SALT = stringPreferencesKey("pin_salt")
+        val BIOMETRIC = booleanPreferencesKey("biometric")
+        val LOCK_TIMEOUT = intPreferencesKey("lock_timeout_seconds")
+        val HIDE_AMOUNTS = booleanPreferencesKey("hide_amounts")
+        val BLOCK_SCREENSHOTS = booleanPreferencesKey("block_screenshots")
     }
 }

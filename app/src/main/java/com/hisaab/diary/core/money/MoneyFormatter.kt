@@ -11,13 +11,18 @@ enum class CurrencySymbol(val text: String) {
  * Formats [Money] for display, e.g. `Rs 1,250` or `Rs 1,250.50`.
  * Uses fixed ASCII digits and comma grouping, so output does not depend on the phone locale.
  */
-class MoneyFormatter(private val symbol: CurrencySymbol = CurrencySymbol.RS) {
+class MoneyFormatter(
+    private val symbol: CurrencySymbol = CurrencySymbol.RS,
+    /** Privacy mode: amounts show as "Rs ****". */
+    private val hidden: Boolean = false,
+) {
     /**
      * @param showSign add "-" for negative amounts. Lists usually show the absolute
      *   value with a color instead, so the default is false.
      * @param alwaysShowPaisa show ".00" even for whole rupees.
      */
     fun format(money: Money, showSign: Boolean = false, alwaysShowPaisa: Boolean = false): String {
+        if (hidden) return if (symbol == CurrencySymbol.NONE) HIDDEN else "${symbol.text} $HIDDEN"
         val number = buildString {
             if (showSign && money.isNegative) append('-')
             append(groupThousands(money.abs().rupees))
@@ -53,5 +58,6 @@ class MoneyFormatter(private val symbol: CurrencySymbol = CurrencySymbol.RS) {
 
     private companion object {
         const val GROUP_SIZE = 3
+        const val HIDDEN = "****"
     }
 }

@@ -12,7 +12,6 @@
     <string name="action_back">Back</string>
 
     <!-- Placeholders (removed when the features are built) -->
-    <string name="coming_soon">Coming soon</string>
 
     <!-- Home summary -->
     <string name="summary_will_get">You will get</string>
@@ -181,6 +180,26 @@
     <string name="error_last_book">You need at least one book, so this one cannot be deleted.</string>
     <string name="error_book_name_empty">Please enter a name.</string>
     <string name="error_book_name_long">Name is too long (max 40 letters).</string>
+
+    <!-- Settings: security -->
+    <string name="settings_security">Security</string>
+    <string name="settings_app_lock">App lock</string>
+    <string name="settings_app_lock_desc">Ask for a 4-digit PIN when the app opens.</string>
+    <string name="settings_fingerprint">Fingerprint / face unlock</string>
+    <string name="settings_fingerprint_desc">Unlock without typing the PIN.</string>
+    <string name="settings_lock_after">Lock after</string>
+    <string name="lock_after_now">Right away</string>
+    <string name="lock_after_seconds">%1$d seconds in the background</string>
+    <string name="lock_after_minutes">%1$d min in the background</string>
+    <string name="pin_new">Choose a 4-digit PIN</string>
+    <string name="pin_confirm">Enter the PIN again</string>
+    <string name="pin_mismatch">PINs did not match. Try again.</string>
+    <string name="lock_enter_pin">Enter your PIN</string>
+    <string name="lock_wrong_pin">Wrong PIN. Try again.</string>
+    <string name="lock_use_fingerprint">Use fingerprint</string>
+    <string name="lock_use_pin">Use PIN</string>
+    <string name="lock_biometric_title">Unlock Hisaab Diary</string>
+    <string name="lock_digits_entered">%1$d of %2$d digits entered</string>
 
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
