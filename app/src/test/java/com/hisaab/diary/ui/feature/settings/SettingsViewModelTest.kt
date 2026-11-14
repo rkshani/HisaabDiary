@@ -1,5 +1,9 @@
 package com.hisaab.diary.ui.feature.settings
 
+import android.net.Uri
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import app.cash.turbine.test
+import com.hisaab.diary.data.backup.BackupService
 import com.hisaab.diary.domain.fake.FakeSettingsRepository
 import com.hisaab.diary.domain.usecase.DisableAppLockUseCase
 import com.hisaab.diary.domain.usecase.ObserveSettingsUseCase
@@ -12,7 +16,9 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class SettingsViewModelTest {
     @get:Rule
     val main = MainDispatcherRule()
@@ -46,6 +52,19 @@ class SettingsViewModelTest {
         vm.setBlockScreenshots(true)
         assertTrue(repo.settings.value.hideAmounts)
         assertTrue(repo.settings.value.blockScreenshots)
+    }
+
+    @Test
+    fun backupUsesChosenPasswordAndReportsResult() = runTest {
+        vm.messages.test {
+            vm.startBackup("pw")
+            vm.createBackup(Uri.EMPTY)
+            assertEquals(SettingsMessage.BACKUP_DONE, awaitItem())
+        }
+        assertEquals("pw", backupPassword)
+        vm.startBackup("")
+        vm.createBackup(Uri.EMPTY)
+        assertEquals(null, backupPassword)
     }
 
     @Test
