@@ -40,6 +40,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -49,6 +50,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hisaab.diary.R
 import com.hisaab.diary.core.date.DateFormatter
+import com.hisaab.diary.data.export.ShareFiles
 import com.hisaab.diary.domain.model.BalanceStatus
 import com.hisaab.diary.domain.model.PartySummary
 import com.hisaab.diary.ui.components.formatMoney
@@ -70,6 +72,21 @@ fun PartyDetailDestination(
     var showReminder by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val noAppMessage = stringResource(R.string.reminder_no_app)
+    val context = LocalContext.current
+    val exportFailedMessage = stringResource(R.string.pdf_failed)
+    val shareTitle = stringResource(R.string.pdf_share_title)
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            when (effect) {
+                is PartyDetailEffect.SharePdf -> {
+                    val uri = ShareFiles.uriFor(context, effect.file)
+                    runCatching { context.startActivity(ShareFiles.shareIntent(uri, "application/pdf", shareTitle)) }
+                }
+
+                PartyDetailEffect.ExportFailed -> snackbarHostState.showSnackbar(exportFailedMessage)
+            }
+        }
+    }
     val currentOnBack by rememberUpdatedState(onBack)
     val snackbarHostState = remember { SnackbarHostState() }
     val pendingUndo by viewModel.pendingUndo.collectAsStateWithLifecycle()
@@ -97,6 +114,7 @@ fun PartyDetailDestination(
         onEdit = { showEditor = true },
         onSettleUp = { confirmSettle = true },
         onSendReminder = { showReminder = true },
+        onSharePdf = viewModel::exportPdf,
         onAddEntry = { isGave -> onAddEntry(viewModel.partyId, isGave) },
         onOpenEntry = { entryId -> onOpenEntry(viewModel.partyId, entryId) },
         modifier = modifier,
@@ -141,6 +159,7 @@ fun PartyDetailScreen(
     onEdit: () -> Unit,
     onSettleUp: () -> Unit,
     onSendReminder: () -> Unit,
+    onSharePdf: () -> Unit,
     onAddEntry: (isGave: Boolean) -> Unit,
     onOpenEntry: (entryId: Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -162,6 +181,9 @@ fun PartyDetailScreen(
                         TextButton(onClick = onSettleUp) { Text(stringResource(R.string.action_settle_up)) }
                     }
                     if (state.summary != null) {
+                        IconButton(onClick = onSharePdf) {
+                            Icon(painterResource(R.drawable.ic_share), stringResource(R.string.action_share_pdf))
+                        }
                         IconButton(onClick = onEdit) {
                             Icon(painterResource(R.drawable.ic_edit), stringResource(R.string.action_edit_person))
                         }

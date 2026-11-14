@@ -139,6 +139,21 @@
     <string name="report_row_got">Got %1$s</string>
     <string name="chart_description">Chart. Total you gave %1$s, total you got %2$s.</string>
 
+    <!-- Statement PDF -->
+    <string name="action_share_pdf">Share statement (PDF)</string>
+    <string name="pdf_share_title">Share statement</string>
+    <string name="pdf_failed">Could not make the PDF. Please try again.</string>
+    <string name="pdf_statement_of">Statement: %1$s</string>
+    <string name="pdf_generated_on">Made on %1$s</string>
+    <string name="pdf_col_date">Date</string>
+    <string name="pdf_col_note">Note</string>
+    <string name="pdf_col_balance">Balance</string>
+    <string name="pdf_total">Total</string>
+    <string name="pdf_bal_get">(will get)</string>
+    <string name="pdf_bal_give">(will give)</string>
+    <string name="pdf_footer">Made with Hisaab Diary</string>
+    <string name="pdf_page">Page %1$d</string>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>
