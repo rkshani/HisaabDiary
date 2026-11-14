@@ -32,6 +32,10 @@ class EnsureDefaultBookUseCase @Inject constructor(
     }
 }
 
+class CompleteOnboardingUseCase @Inject constructor(private val settings: SettingsRepository) {
+    suspend operator fun invoke() = settings.setOnboardingDone(true)
+}
+
 class ObserveSettingsUseCase @Inject constructor(private val settings: SettingsRepository) {
     operator fun invoke(): Flow<AppSettings> = settings.settings
 }

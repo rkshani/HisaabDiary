@@ -3,9 +3,11 @@ package com.hisaab.diary.ui.feature.settings
 import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
+import com.hisaab.diary.core.money.CurrencySymbol
 import com.hisaab.diary.data.backup.BackupService
 import com.hisaab.diary.data.backup.RestoreResult
 import com.hisaab.diary.domain.fake.FakeSettingsRepository
+import com.hisaab.diary.domain.model.ThemeMode
 import com.hisaab.diary.domain.usecase.DisableAppLockUseCase
 import com.hisaab.diary.domain.usecase.ObserveSettingsUseCase
 import com.hisaab.diary.domain.usecase.SetPinUseCase
@@ -118,6 +120,16 @@ class SettingsViewModelTest {
     fun backupReminderDaysAreSaved() {
         vm.setBackupReminderDays(14)
         assertEquals(14, repo.settings.value.backupReminderDays)
+    }
+
+    @Test
+    fun appearanceSettingsAreSaved() {
+        vm.setThemeMode(ThemeMode.DARK)
+        vm.setDynamicColor(false)
+        vm.setCurrencySymbol(CurrencySymbol.RUPEE_SIGN)
+        assertEquals(ThemeMode.DARK, repo.settings.value.themeMode)
+        assertFalse(repo.settings.value.dynamicColor)
+        assertEquals(CurrencySymbol.RUPEE_SIGN, repo.settings.value.currencySymbol)
     }
 
     @Test

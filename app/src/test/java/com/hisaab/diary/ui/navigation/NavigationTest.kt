@@ -46,6 +46,7 @@ class NavigationTest {
         runBlocking {
             val bookId = books.addBook("Personal")
             settings.setSelectedBook(bookId)
+            settings.setOnboardingDone(true)
             parties.addParty(bookId, "Ali Raza", null, null)
         }
         compose.waitUntil(TIMEOUT_MS) {

@@ -1,6 +1,7 @@
 package com.hisaab.diary.ui
 
 import com.hisaab.diary.domain.fake.FakeSettingsRepository
+import com.hisaab.diary.domain.usecase.CompleteOnboardingUseCase
 import com.hisaab.diary.domain.usecase.ObserveSettingsUseCase
 import com.hisaab.diary.domain.usecase.SetPinUseCase
 import com.hisaab.diary.domain.usecase.VerifyPinUseCase
@@ -19,7 +20,18 @@ class MainViewModelTest {
     private val repo = FakeSettingsRepository()
     private var now = 0L
 
-    private fun viewModel() = MainViewModel(ObserveSettingsUseCase(repo), VerifyPinUseCase(repo)) { now }
+    private fun viewModel() = MainViewModel(
+        ObserveSettingsUseCase(repo),
+        VerifyPinUseCase(repo),
+        { now },
+        CompleteOnboardingUseCase(repo),
+    )
+
+    @Test
+    fun finishOnboardingIsSaved() {
+        viewModel().finishOnboarding()
+        assertTrue(repo.settings.value.onboardingDone)
+    }
 
     @Test
     fun noLockMeansUnlocked() {
