@@ -6,9 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hisaab.diary.core.money.MoneyFormatter
 import com.hisaab.diary.domain.model.ThemeMode
+import com.hisaab.diary.ui.components.LocalMoneyFormatter
 import com.hisaab.diary.ui.theme.HisaabTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -26,8 +30,11 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
             }
+            val moneyFormatter = remember(settings.currencySymbol) { MoneyFormatter(settings.currencySymbol) }
             HisaabTheme(darkTheme = darkTheme, dynamicColor = settings.dynamicColor) {
-                HisaabRoot()
+                CompositionLocalProvider(LocalMoneyFormatter provides moneyFormatter) {
+                    HisaabRoot()
+                }
             }
         }
     }

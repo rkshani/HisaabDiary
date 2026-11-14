@@ -21,7 +21,12 @@ object DatabaseModule {
     fun provideDatabase(@ApplicationContext context: Context): HisaabDatabase =
         Room.databaseBuilder(context, HisaabDatabase::class.java, HisaabDatabase.NAME)
             .build()
+}
 
+/** DAOs come from the database. Separate, so tests can replace only the database. */
+@Module
+@InstallIn(SingletonComponent::class)
+object DaoModule {
     @Provides
     fun provideBookDao(db: HisaabDatabase): BookDao = db.bookDao()
 

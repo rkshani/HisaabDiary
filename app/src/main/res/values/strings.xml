@@ -17,6 +17,13 @@
     <string name="party_title">Party #%1$d</string>
     <string name="add_entry_title">New entry</string>
 
+    <!-- Home summary -->
+    <string name="summary_will_get">You will get</string>
+    <string name="summary_will_give">You will give</string>
+    <string name="summary_net_get">Net: you will get</string>
+    <string name="summary_net_give">Net: you will give</string>
+    <string name="summary_net_settled">Net: all settled</string>
+
     <!-- Entry types -->
     <string name="action_you_gave">You gave</string>
     <string name="action_you_got">You got</string>
