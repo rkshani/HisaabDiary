@@ -64,6 +64,10 @@ class DateUtils(
         return (to - from).toInt()
     }
 
+    /** Whole calendar days from [from] to [to] (0 when on the same day). */
+    fun daysBetween(from: Long, to: Long): Int =
+        (localDayNumber(startOfDay(to)) - localDayNumber(startOfDay(from))).toInt()
+
     /** Same time of day, [days] later (or earlier when negative). DST-safe. */
     fun plusDays(millis: Long, days: Int): Long = calendar(millis).apply {
         add(Calendar.DAY_OF_MONTH, days)
