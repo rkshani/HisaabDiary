@@ -12,6 +12,7 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -85,7 +86,7 @@ object ReminderNotifications {
             context.getString(R.string.notification_channel_dues),
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply { description = context.getString(R.string.notification_channel_dues_desc) }
-        context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        context.getSystemService<NotificationManager>()?.createNotificationChannel(channel)
     }
 
     /** Text like "Collect Rs 2,000 from Ali — due today". */
