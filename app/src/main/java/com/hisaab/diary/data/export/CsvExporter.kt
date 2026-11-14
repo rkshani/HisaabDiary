@@ -36,7 +36,7 @@ class AndroidCsvExporter @Inject constructor(
             val stream = context.contentResolver.openOutputStream(target, "wt") ?: error("No output stream")
             stream.bufferedWriter(Charsets.UTF_8).use { writer ->
                 // BOM so Excel opens UTF-8 names correctly.
-                writer.write(BOM)
+                writer.write(BOM_CODE)
                 writer.write(Csv.line(header()))
                 rows.forEach { writer.write(Csv.line(toFields(it))) }
             }
@@ -63,7 +63,7 @@ class AndroidCsvExporter @Inject constructor(
     )
 
     private companion object {
-        const val BOM = "﻿"
+        const val BOM_CODE = 0xFEFF
     }
 }
 

@@ -56,6 +56,10 @@ class DataStoreSettingsRepository @Inject constructor(private val dataStore: Dat
 
     override suspend fun setBlockScreenshots(block: Boolean) = edit { it[Keys.BLOCK_SCREENSHOTS] = block }
 
+    override suspend fun setLastBackupAt(time: Long) = edit { it[Keys.LAST_BACKUP] = time }
+
+    override suspend fun setBackupReminderDays(days: Int) = edit { it[Keys.BACKUP_DAYS] = days }
+
     private suspend fun edit(block: (MutablePreferences) -> Unit) {
         dataStore.edit { block(it) }
     }
@@ -74,6 +78,8 @@ class DataStoreSettingsRepository @Inject constructor(private val dataStore: Dat
             lockTimeoutSeconds = this[Keys.LOCK_TIMEOUT] ?: defaults.lockTimeoutSeconds,
             hideAmounts = this[Keys.HIDE_AMOUNTS] ?: defaults.hideAmounts,
             blockScreenshots = this[Keys.BLOCK_SCREENSHOTS] ?: defaults.blockScreenshots,
+            lastBackupAt = this[Keys.LAST_BACKUP],
+            backupReminderDays = this[Keys.BACKUP_DAYS] ?: defaults.backupReminderDays,
         )
     }
 
@@ -92,5 +98,7 @@ class DataStoreSettingsRepository @Inject constructor(private val dataStore: Dat
         val LOCK_TIMEOUT = intPreferencesKey("lock_timeout_seconds")
         val HIDE_AMOUNTS = booleanPreferencesKey("hide_amounts")
         val BLOCK_SCREENSHOTS = booleanPreferencesKey("block_screenshots")
+        val LAST_BACKUP = longPreferencesKey("last_backup_at")
+        val BACKUP_DAYS = intPreferencesKey("backup_reminder_days")
     }
 }

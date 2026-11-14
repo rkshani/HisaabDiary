@@ -155,7 +155,10 @@
 
     <!-- CSV export -->
     <string name="action_export_csv">Export CSV</string>
-    <string name="csv_saved">Saved %1$d entries as CSV.</string>
+    <plurals name="csv_saved">
+        <item quantity="one">Saved %d entry as CSV.</item>
+        <item quantity="other">Saved %d entries as CSV.</item>
+    </plurals>
     <string name="csv_failed">Could not save the CSV file.</string>
     <string name="csv_date">Date</string>
     <string name="csv_book">Book</string>
@@ -232,6 +235,19 @@
     <string name="restore_not_backup">This file is not a Hisaab Diary backup.</string>
     <string name="restore_newer_version">This backup is from a newer app version. Please update the app first.</string>
     <string name="restore_failed">Could not restore the backup.</string>
+
+    <!-- Backup reminder -->
+    <string name="backup_reminder">Backup reminder</string>
+    <string name="backup_reminder_off">Off</string>
+    <plurals name="backup_reminder_every">
+        <item quantity="one">If no backup for %d day</item>
+        <item quantity="other">If no backup for %d days</item>
+    </plurals>
+    <string name="notification_backup_title">Time to take a backup</string>
+    <plurals name="notification_backup_days">
+        <item quantity="one">You have not taken a backup for %d day.</item>
+        <item quantity="other">You have not taken a backup for %d days.</item>
+    </plurals>
 
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>

@@ -8,6 +8,7 @@ import com.hisaab.diary.core.coroutines.IoDispatcher
 import com.hisaab.diary.core.date.Clock
 import com.hisaab.diary.core.security.BackupCrypto
 import com.hisaab.diary.data.local.HisaabDatabase
+import com.hisaab.diary.domain.repository.SettingsRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -59,6 +60,7 @@ class BackupManager @Inject constructor(
     @param:IoDispatcher private val io: CoroutineDispatcher,
     private val database: HisaabDatabase,
     private val clock: Clock,
+    private val settings: SettingsRepository,
 ) : BackupService {
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -86,6 +88,7 @@ class BackupManager @Inject constructor(
                     }
                 }
             }
+            settings.setLastBackupAt(clock.nowMillis())
             true
         }.getOrDefault(false)
     }

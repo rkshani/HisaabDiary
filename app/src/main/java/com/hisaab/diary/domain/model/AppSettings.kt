@@ -23,8 +23,13 @@ data class AppSettings(
     val hideAmounts: Boolean = false,
     /** Block screenshots and the recent-apps preview (FLAG_SECURE). */
     val blockScreenshots: Boolean = false,
+    /** When the last backup was made; null = never (counted from the first reminder check). */
+    val lastBackupAt: Long? = null,
+    /** Remind to back up after this many days; 0 = never remind. */
+    val backupReminderDays: Int = DEFAULT_BACKUP_REMINDER_DAYS,
 ) {
     val isLockEnabled: Boolean get() = pinHash != null && pinSalt != null
 }
 
 const val DEFAULT_LOCK_TIMEOUT_SECONDS = 30
+const val DEFAULT_BACKUP_REMINDER_DAYS = 7

@@ -106,6 +106,8 @@ class SettingsViewModel @Inject constructor(
 
     fun setLockTimeout(seconds: Int) = launch { settingsRepository.setLockTimeoutSeconds(seconds) }
 
+    fun setBackupReminderDays(days: Int) = launch { settingsRepository.setBackupReminderDays(days) }
+
     fun setHideAmounts(hide: Boolean) = launch { settingsRepository.setHideAmounts(hide) }
 
     fun setBlockScreenshots(block: Boolean) = launch { settingsRepository.setBlockScreenshots(block) }
@@ -117,6 +119,9 @@ class SettingsViewModel @Inject constructor(
     companion object {
         /** Choices for "Lock after": now, 30 seconds, 1 minute, 5 minutes. */
         val LOCK_TIMEOUTS = listOf(0, 30, 60, 300)
+
+        /** Choices for the backup reminder; 0 = off. */
+        val BACKUP_REMINDER_DAYS = listOf(0, 3, 7, 14, 30)
         private const val STOP_TIMEOUT_MS = 5_000L
     }
 }

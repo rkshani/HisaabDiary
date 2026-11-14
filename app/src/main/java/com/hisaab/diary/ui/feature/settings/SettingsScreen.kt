@@ -41,6 +41,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -60,15 +62,16 @@ import com.hisaab.diary.ui.feature.lock.PinDots
 fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(viewModel) {
         viewModel.messages.collect { message ->
             val text = when (message) {
-                SettingsMessage.BACKUP_DONE -> context.getString(R.string.backup_done)
-                SettingsMessage.BACKUP_FAILED -> context.getString(R.string.backup_failed)
-                SettingsMessage.NOT_A_BACKUP -> context.getString(R.string.restore_not_backup)
-                SettingsMessage.NEWER_VERSION -> context.getString(R.string.restore_newer_version)
-                SettingsMessage.RESTORE_FAILED -> context.getString(R.string.restore_failed)
+                SettingsMessage.BACKUP_DONE -> resources.getString(R.string.backup_done)
+                SettingsMessage.BACKUP_FAILED -> resources.getString(R.string.backup_failed)
+                SettingsMessage.NOT_A_BACKUP -> resources.getString(R.string.restore_not_backup)
+                SettingsMessage.NEWER_VERSION -> resources.getString(R.string.restore_newer_version)
+                SettingsMessage.RESTORE_FAILED -> resources.getString(R.string.restore_failed)
             }
             snackbarHostState.showSnackbar(text)
         }
@@ -106,6 +109,7 @@ fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewMo
                 runCatching { saveBackup.launch(BackupManager.fileName(today)) }
             },
             onRestoreBackup = { runCatching { openBackup.launch(arrayOf("*/*")) } },
+            onBackupReminderChange = viewModel::setBackupReminderDays,
         ),
         modifier = modifier,
     )
@@ -121,6 +125,7 @@ class SettingsActions(
     val onBlockScreenshotsChange: (Boolean) -> Unit,
     val onCreateBackup: (password: String?) -> Unit,
     val onRestoreBackup: () -> Unit,
+    val onBackupReminderChange: (Int) -> Unit,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -135,6 +140,7 @@ fun SettingsScreen(
     var settingPin by rememberSaveable { mutableStateOf(false) }
     var pickTimeout by rememberSaveable { mutableStateOf(false) }
     var askBackupPassword by rememberSaveable { mutableStateOf(false) }
+    var pickBackupDays by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         modifier = modifier,
         topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_settings)) }) },
@@ -194,10 +200,28 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.restore_backup_desc),
                 onClick = actions.onRestoreBackup,
             )
+            ClickRow(
+                title = stringResource(R.string.backup_reminder),
+                subtitle = backupDaysLabel(settings.backupReminderDays),
+                onClick = { pickBackupDays = true },
+            )
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
         }
     }
 
+    if (pickBackupDays) {
+        ChoiceDialog(
+            title = stringResource(R.string.backup_reminder),
+            options = SettingsViewModel.BACKUP_REMINDER_DAYS,
+            selected = settings.backupReminderDays,
+            label = { backupDaysLabel(it) },
+            onSelect = {
+                pickBackupDays = false
+                actions.onBackupReminderChange(it)
+            },
+            onDismiss = { pickBackupDays = false },
+        )
+    }
     if (askBackupPassword) {
         BackupPasswordDialog(
             onConfirm = { password ->
@@ -481,4 +505,45 @@ private fun restartApp(context: Context) {
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
     context.startActivity(intent)
     Process.killProcess(Process.myPid())
+}
+
+@Composable
+private fun backupDaysLabel(days: Int): String = if (days == 0) {
+    stringResource(R.string.backup_reminder_off)
+} else {
+    pluralStringResource(R.plurals.backup_reminder_every, days, days)
+}
+
+/** Simple list of radio choices. */
+@Composable
+private fun ChoiceDialog(
+    title: String,
+    options: List<Int>,
+    selected: Int,
+    label: @Composable (Int) -> String,
+    onSelect: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column {
+                options.forEach { option ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(option) }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = option == selected, onClick = null)
+                        Text(label(option), Modifier.padding(start = 12.dp))
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
+    )
 }

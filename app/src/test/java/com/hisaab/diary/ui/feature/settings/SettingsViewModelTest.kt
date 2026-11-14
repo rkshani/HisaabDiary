@@ -39,13 +39,17 @@ class SettingsViewModelTest {
         override suspend fun restore(source: Uri, password: String?): RestoreResult =
             if (password == null || password == "right") RestoreResult.OK else RestoreResult.WRONG_PASSWORD
     }
-    private val vm = SettingsViewModel(
-        ObserveSettingsUseCase(repo),
-        SetPinUseCase(repo),
-        DisableAppLockUseCase(repo),
-        repo,
-        backup,
-    )
+
+    // Lazy: viewModelScope must be created after MainDispatcherRule set Dispatchers.Main.
+    private val vm by lazy {
+        SettingsViewModel(
+            ObserveSettingsUseCase(repo),
+            SetPinUseCase(repo),
+            DisableAppLockUseCase(repo),
+            repo,
+            backup,
+        )
+    }
 
     @Test
     fun enableVerifyAndDisableLock() = runTest {
@@ -108,6 +112,12 @@ class SettingsViewModelTest {
         assertEquals(RestoreStep.Confirm(file, null), vm.restore.value)
         vm.onRestoreCancelled()
         assertEquals(RestoreStep.Idle, vm.restore.value)
+    }
+
+    @Test
+    fun backupReminderDaysAreSaved() {
+        vm.setBackupReminderDays(14)
+        assertEquals(14, repo.settings.value.backupReminderDays)
     }
 
     @Test
