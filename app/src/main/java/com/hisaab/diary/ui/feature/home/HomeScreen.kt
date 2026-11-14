@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,6 +34,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hisaab.diary.R
 import com.hisaab.diary.core.money.Money
 import com.hisaab.diary.domain.model.BookTotals
+import com.hisaab.diary.ui.feature.books.BookSwitcherSheet
 import com.hisaab.diary.ui.feature.party.editor.PartyEditorSheet
 import com.hisaab.diary.ui.theme.HisaabTheme
 
@@ -45,14 +47,19 @@ fun HomeRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showAddSheet by rememberSaveable { mutableStateOf(false) }
+    var showBooks by rememberSaveable { mutableStateOf(false) }
     HomeScreen(
         state = state,
         onEvent = viewModel::onEvent,
         onOpenParty = onOpenParty,
         onAddParty = { showAddSheet = true },
         onOpenReminders = onOpenReminders,
+        onOpenBooks = { showBooks = true },
         modifier = modifier,
     )
+    if (showBooks) {
+        BookSwitcherSheet(onDismiss = { showBooks = false })
+    }
     if (showAddSheet && !state.isLoading) {
         PartyEditorSheet(
             bookId = state.bookId,
@@ -74,13 +81,27 @@ fun HomeScreen(
     onOpenParty: (Long) -> Unit,
     onAddParty: () -> Unit,
     onOpenReminders: () -> Unit,
+    onOpenBooks: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(state.bookName.ifEmpty { stringResource(R.string.app_name) }) },
+                title = {
+                    TextButton(onClick = onOpenBooks) {
+                        Text(
+                            text = state.bookName.ifEmpty { stringResource(R.string.app_name) },
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Icon(
+                            painterResource(R.drawable.ic_expand),
+                            contentDescription = stringResource(R.string.action_switch_book),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = onOpenReminders) {
                         Icon(painterResource(R.drawable.ic_notification), stringResource(R.string.reminders_title))
@@ -158,6 +179,7 @@ private fun HomeScreenEmptyPreview() {
             onOpenParty = {},
             onAddParty = {},
             onOpenReminders = {},
+            onOpenBooks = {},
         )
     }
 }
