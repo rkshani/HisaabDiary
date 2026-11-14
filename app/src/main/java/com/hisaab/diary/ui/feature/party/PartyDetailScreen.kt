@@ -15,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -52,6 +54,7 @@ import com.hisaab.diary.domain.model.PartySummary
 import com.hisaab.diary.ui.components.formatMoney
 import com.hisaab.diary.ui.feature.party.editor.PartyEditorSheet
 import com.hisaab.diary.ui.theme.HisaabTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun PartyDetailDestination(
@@ -64,6 +67,9 @@ fun PartyDetailDestination(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showEditor by rememberSaveable { mutableStateOf(false) }
     var confirmSettle by rememberSaveable { mutableStateOf(false) }
+    var showReminder by rememberSaveable { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val noAppMessage = stringResource(R.string.reminder_no_app)
     val currentOnBack by rememberUpdatedState(onBack)
     val snackbarHostState = remember { SnackbarHostState() }
     val pendingUndo by viewModel.pendingUndo.collectAsStateWithLifecycle()
@@ -90,12 +96,20 @@ fun PartyDetailDestination(
         onBack = onBack,
         onEdit = { showEditor = true },
         onSettleUp = { confirmSettle = true },
+        onSendReminder = { showReminder = true },
         onAddEntry = { isGave -> onAddEntry(viewModel.partyId, isGave) },
         onOpenEntry = { entryId -> onOpenEntry(viewModel.partyId, entryId) },
         modifier = modifier,
     )
 
     val summary = state.summary
+    if (showReminder && summary != null) {
+        SendReminderDialog(
+            summary = summary,
+            onDismiss = { showReminder = false },
+            onFailure = { scope.launch { snackbarHostState.showSnackbar(noAppMessage) } },
+        )
+    }
     if (confirmSettle && summary != null) {
         val note = stringResource(R.string.settle_up_note)
         SettleUpDialog(
@@ -126,6 +140,7 @@ fun PartyDetailScreen(
     onBack: () -> Unit,
     onEdit: () -> Unit,
     onSettleUp: () -> Unit,
+    onSendReminder: () -> Unit,
     onAddEntry: (isGave: Boolean) -> Unit,
     onOpenEntry: (entryId: Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -167,6 +182,17 @@ fun PartyDetailScreen(
         val formatter = remember { DateFormatter() }
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {
             item(key = "balance") { PartyBalanceCard(summary, Modifier.padding(16.dp)) }
+            if (summary.status == BalanceStatus.WILL_GET) {
+                item(key = "reminder") {
+                    FilledTonalButton(
+                        onClick = onSendReminder,
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                    ) {
+                        Icon(painterResource(R.drawable.ic_send), contentDescription = null)
+                        Text(stringResource(R.string.action_send_reminder), Modifier.padding(start = 8.dp))
+                    }
+                }
+            }
             if (state.days.isEmpty()) {
                 item(key = "empty") {
                     Text(
