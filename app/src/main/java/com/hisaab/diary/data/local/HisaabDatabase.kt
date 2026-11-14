@@ -4,6 +4,9 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
+import com.hisaab.diary.data.local.dao.BookDao
+import com.hisaab.diary.data.local.dao.PartyDao
+import com.hisaab.diary.data.local.dao.TransactionDao
 import com.hisaab.diary.data.local.entity.BookEntity
 import com.hisaab.diary.data.local.entity.PartyEntity
 import com.hisaab.diary.data.local.entity.ReminderEntity
@@ -21,6 +24,12 @@ import com.hisaab.diary.data.local.entity.TransactionType
 )
 @TypeConverters(Converters::class)
 abstract class HisaabDatabase : RoomDatabase() {
+    abstract fun bookDao(): BookDao
+
+    abstract fun partyDao(): PartyDao
+
+    abstract fun transactionDao(): TransactionDao
+
     companion object {
         const val VERSION = 1
         const val NAME = "hisaab.db"
