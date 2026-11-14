@@ -1,0 +1,27 @@
+# Only overrides. Everything else uses the detekt defaults (buildUponDefaultConfig = true).
+naming:
+  FunctionNaming:
+    # Composable functions start with a capital letter.
+    ignoreAnnotated: [ 'Composable' ]
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][A-Za-z0-9_]*'
+
+complexity:
+  LongParameterList:
+    # Composables often take many parameters (modifier, state, callbacks).
+    ignoreAnnotated: [ 'Composable' ]
+  TooManyFunctions:
+    ignoreAnnotatedFunctions: [ 'Preview' ]
+
+style:
+  MagicNumber:
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotated: [ 'Preview', 'Composable' ]
+    excludes: [ '**/test/**', '**/androidTest/**', '**/ui/theme/**' ]
+  UnusedPrivateMember:
+    ignoreAnnotated: [ 'Preview' ]
+
+Compose:
+  ModifierMissing:
+    active: true

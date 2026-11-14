@@ -28,14 +28,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+fun Greeting(modifier: Modifier = Modifier) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(text = stringResource(R.string.hello_message), style = MaterialTheme.typography.headlineSmall)
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+private fun GreetingPreview() {
     MaterialTheme { Greeting() }
 }
