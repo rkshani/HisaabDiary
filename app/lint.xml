@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- All UI text must come from strings.xml. -->
+    <issue id="HardcodedText" severity="error" />
+    <issue id="SetTextI18n" severity="error" />
+    <!-- Layouts must work right-to-left too (use start/end, not left/right). -->
+    <issue id="RtlHardcoded" severity="error" />
+    <issue id="RtlSymmetry" severity="error" />
+    <!-- Never add network access. -->
+    <issue id="MissingPermission" severity="error" />
+    <!-- We ship English only, and keep dependencies up to date on purpose in separate steps. -->
+    <issue id="GradleDependency" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
+</lint>
