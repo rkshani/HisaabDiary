@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.hisaab.diary.core.date.DateUtils
+import com.hisaab.diary.data.files.AttachmentStorage
 import com.hisaab.diary.domain.model.Entry
 import com.hisaab.diary.domain.model.LedgerEntry
 import com.hisaab.diary.domain.model.PartySummary
@@ -40,6 +41,7 @@ class PartyDetailViewModel @Inject constructor(
     private val dateUtils: DateUtils,
     private val recentlyDeleted: RecentlyDeletedEntry,
     private val undoDelete: UndoDeleteTransactionUseCase,
+    private val attachments: AttachmentStorage,
 ) : ViewModel() {
     val partyId: Long = savedStateHandle.toRoute<PartyDetailRoute>().partyId
 
@@ -62,7 +64,11 @@ class PartyDetailViewModel @Inject constructor(
         viewModelScope.launch { undoDelete(entry) }
     }
 
-    fun dismissUndo(entry: Entry) = recentlyDeleted.clear(entry)
+    /** Undo time is over: the entry is gone for good, so remove its bill photo too. */
+    fun dismissUndo(entry: Entry) {
+        recentlyDeleted.clear(entry)
+        entry.attachmentPath?.let(attachments::delete)
+    }
 
     private companion object {
         const val STOP_TIMEOUT_MS = 5_000L

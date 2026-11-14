@@ -92,6 +92,13 @@
     <string name="error_note_too_long">Note is too long (max 200 letters).</string>
     <string name="error_entry_not_found">This entry was deleted.</string>
 
+    <!-- Bill photo -->
+    <string name="bill_photo">Bill photo</string>
+    <string name="action_take_photo">Camera</string>
+    <string name="action_pick_photo">Gallery</string>
+    <string name="action_remove_photo">Remove photo</string>
+    <string name="action_close">Close</string>
+
     <!-- Entry types -->
     <string name="action_you_gave">You gave</string>
     <string name="action_you_got">You got</string>

@@ -5,6 +5,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.hisaab.diary.core.date.DateUtils
 import com.hisaab.diary.core.money.Money
+import com.hisaab.diary.data.fake.FakeAttachmentStorage
 import com.hisaab.diary.domain.fake.FakeEntryRepository
 import com.hisaab.diary.domain.fake.FakePartyRepository
 import com.hisaab.diary.domain.fake.FakeStore
@@ -38,6 +39,7 @@ class PartyDetailViewModelTest {
     private val entries = FakeEntryRepository(store)
 
     private val recentlyDeleted = RecentlyDeletedEntry()
+    private val attachments = FakeAttachmentStorage()
 
     private fun viewModel(partyId: Long) = PartyDetailViewModel(
         SavedStateHandle(mapOf("partyId" to partyId)),
@@ -46,6 +48,7 @@ class PartyDetailViewModelTest {
         dateUtils,
         recentlyDeleted,
         UndoDeleteTransactionUseCase(entries),
+        attachments,
     )
 
     @Test
@@ -95,12 +98,13 @@ class PartyDetailViewModelTest {
     }
 
     @Test
-    fun dismissClearsPendingUndo() {
+    fun dismissClearsPendingUndoAndDeletesPhoto() {
         val vm = viewModel(1)
-        val e = entry(1, EntryType.GAVE, 5, 0)
+        val e = entry(1, EntryType.GAVE, 5, 0).copy(attachmentPath = "/bills/a.jpg")
         recentlyDeleted.remember(e)
         vm.dismissUndo(e)
         assertNull(vm.pendingUndo.value)
+        assertEquals(listOf("/bills/a.jpg"), attachments.deleted)
     }
 
     @Test

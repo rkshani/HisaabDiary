@@ -1,5 +1,6 @@
 package com.hisaab.diary.ui.feature.entry
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,7 @@ import com.hisaab.diary.core.money.AmountCalculator
 import com.hisaab.diary.core.money.Money
 import com.hisaab.diary.core.money.MoneyFormatter
 import com.hisaab.diary.core.result.Outcome
+import com.hisaab.diary.data.files.AttachmentStorage
 import com.hisaab.diary.domain.model.EntryType
 import com.hisaab.diary.domain.usecase.AddTransactionUseCase
 import com.hisaab.diary.domain.usecase.DeleteTransactionUseCase
@@ -70,6 +72,11 @@ sealed interface AddEntryEvent {
 
     /** Delete the entry being edited. The ledger then offers Undo. */
     data object Delete : AddEntryEvent
+
+    /** A photo from the camera or gallery. */
+    data class AttachmentPicked(val uri: Uri) : AddEntryEvent
+
+    data object RemoveAttachment : AddEntryEvent
 }
 
 sealed interface AddEntryEffect {
@@ -88,7 +95,14 @@ class AddEntryViewModel @Inject constructor(
     private val recentlyDeleted: RecentlyDeletedEntry,
     private val getParty: GetPartyUseCase,
     private val dateUtils: DateUtils,
+    private val attachments: AttachmentStorage,
 ) : ViewModel() {
+    /** Photo the entry had when we opened it (edit mode). */
+    private var originalAttachment: String? = null
+
+    /** Photos saved in this screen but not yet part of a saved entry. */
+    private val unsavedFiles = mutableSetOf<String>()
+
     private val route = savedStateHandle.toRoute<AddEntryRoute>()
 
     private val _state = MutableStateFlow(
@@ -122,7 +136,11 @@ class AddEntryViewModel @Inject constructor(
                 attachmentPath = entry.attachmentPath,
             )
         }
+        originalAttachment = entry.attachmentPath
     }
+
+    /** A file the camera app can write the photo to. */
+    fun newCameraUri(): Uri = attachments.newCameraUri()
 
     fun onEvent(event: AddEntryEvent) {
         when (event) {
@@ -149,6 +167,10 @@ class AddEntryViewModel @Inject constructor(
             AddEntryEvent.Save -> save()
 
             AddEntryEvent.Delete -> delete()
+
+            is AddEntryEvent.AttachmentPicked -> attach(event.uri)
+
+            AddEntryEvent.RemoveAttachment -> replaceAttachment(null)
         }
     }
 
@@ -175,6 +197,7 @@ class AddEntryViewModel @Inject constructor(
                 else -> (updateTransaction(id, input) as? Outcome.Failure)?.error
             }
             if (error == null) {
+                onSaved(current.attachmentPath)
                 _effects.send(AddEntryEffect.Saved)
             } else {
                 _state.update { it.copy(error = error) }
@@ -189,5 +212,30 @@ class AddEntryViewModel @Inject constructor(
             deleteTransaction(id)?.let(recentlyDeleted::remember)
             _effects.send(AddEntryEffect.Deleted)
         }
+    }
+
+    private fun attach(uri: Uri) = viewModelScope.launch {
+        val path = attachments.save(uri) ?: return@launch
+        unsavedFiles += path
+        replaceAttachment(path)
+    }
+
+    private fun replaceAttachment(path: String?) {
+        val old = _state.value.attachmentPath
+        if (old != null && old in unsavedFiles) {
+            unsavedFiles -= old
+            attachments.delete(old)
+        }
+        _state.update { it.copy(attachmentPath = path) }
+    }
+
+    private fun onSaved(finalPath: String?) {
+        finalPath?.let { unsavedFiles -= it }
+        originalAttachment?.takeIf { it != finalPath }?.let(attachments::delete)
+        originalAttachment = finalPath
+    }
+
+    override fun onCleared() {
+        unsavedFiles.forEach(attachments::delete)
     }
 }
