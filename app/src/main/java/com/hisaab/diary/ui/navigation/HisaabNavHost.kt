@@ -22,6 +22,8 @@ fun HisaabNavHost(navController: NavHostController, modifier: Modifier = Modifie
         composable<HomeRoute> {
             HomeRoute(
                 onOpenParty = { partyId -> navController.navigate(PartyDetailRoute(partyId)) },
+                // Add-party sheet comes in step 3.4.
+                onAddParty = {},
             )
         }
         composable<ReportsRoute> { ReportsScreen() }

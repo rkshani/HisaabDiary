@@ -13,7 +13,6 @@
 
     <!-- Placeholders (removed when the features are built) -->
     <string name="coming_soon">Coming soon</string>
-    <string name="open_sample_party">Open sample party</string>
     <string name="party_title">Party #%1$d</string>
     <string name="add_entry_title">New entry</string>
 
@@ -23,6 +22,16 @@
     <string name="summary_net_get">Net: you will get</string>
     <string name="summary_net_give">Net: you will give</string>
     <string name="summary_net_settled">Net: all settled</string>
+
+    <!-- Party list -->
+    <string name="parties_header">People (%1$d)</string>
+    <string name="party_no_entries">No entries yet</string>
+    <string name="status_will_get">You will get</string>
+    <string name="status_will_give">You will give</string>
+    <string name="status_settled">Settled</string>
+    <string name="empty_parties_title">No one here yet</string>
+    <string name="empty_parties_body">Add a person or shop to start writing your lena-dena.</string>
+    <string name="add_first_person">Add first person</string>
 
     <!-- Entry types -->
     <string name="action_you_gave">You gave</string>

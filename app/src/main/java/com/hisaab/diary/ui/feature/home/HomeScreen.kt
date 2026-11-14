@@ -1,14 +1,14 @@
 package com.hisaab.diary.ui.feature.home
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -27,56 +27,69 @@ import com.hisaab.diary.domain.model.BookTotals
 import com.hisaab.diary.ui.theme.HisaabTheme
 
 @Composable
-fun HomeRoute(onOpenParty: (Long) -> Unit, modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
+fun HomeRoute(
+    onOpenParty: (Long) -> Unit,
+    onAddParty: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HomeScreen(state = state, onOpenParty = onOpenParty, modifier = modifier)
+    HomeScreen(state = state, onOpenParty = onOpenParty, onAddParty = onAddParty, modifier = modifier)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(state: HomeUiState, onOpenParty: (Long) -> Unit, modifier: Modifier = Modifier) {
+fun HomeScreen(
+    state: HomeUiState,
+    onOpenParty: (Long) -> Unit,
+    onAddParty: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Scaffold(
         modifier = modifier,
         topBar = {
             TopAppBar(title = { Text(state.bookName.ifEmpty { stringResource(R.string.app_name) }) })
         },
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            val totals = state.totals
-            if (totals == null) {
-                Box(Modifier.fillMaxWidth().padding(24.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                SummaryCard(totals)
+        val totals = state.totals
+        if (state.isLoading || totals == null) {
+            Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-            // Temporary: lets us test navigation until the party list exists (step 3.2).
-            OutlinedButton(onClick = { onOpenParty(SAMPLE_PARTY_ID) }) {
-                Text(stringResource(R.string.open_sample_party))
+            return@Scaffold
+        }
+        LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+            item(key = "summary") {
+                SummaryCard(totals, Modifier.padding(16.dp))
+            }
+            if (state.parties.isEmpty()) {
+                item(key = "empty") { EmptyParties(onAddParty = onAddParty) }
+            } else {
+                item(key = "header") {
+                    Text(
+                        text = stringResource(R.string.parties_header, state.parties.size),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    )
+                }
+                items(state.parties, key = { it.party.id }) { summary ->
+                    PartyRow(summary = summary, onClick = { onOpenParty(summary.party.id) })
+                    HorizontalDivider(Modifier.padding(start = 72.dp))
+                }
             }
         }
     }
 }
 
-private const val SAMPLE_PARTY_ID = 1L
-
 @Preview
 @Composable
-private fun HomeScreenPreview() {
+private fun HomeScreenEmptyPreview() {
     HisaabTheme(dynamicColor = false) {
         HomeScreen(
-            state = HomeUiState(
-                isLoading = false,
-                bookName = "Personal",
-                totals = BookTotals(Money(1_250_000), Money(300_000)),
-            ),
+            state = HomeUiState(isLoading = false, bookName = "Personal", totals = BookTotals(Money.ZERO, Money.ZERO)),
             onOpenParty = {},
+            onAddParty = {},
         )
     }
 }

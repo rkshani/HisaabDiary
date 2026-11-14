@@ -11,6 +11,7 @@ import com.hisaab.diary.domain.model.BookTotals
 import com.hisaab.diary.domain.model.Entry
 import com.hisaab.diary.domain.model.EntryType
 import com.hisaab.diary.domain.usecase.ObserveBookTotalsUseCase
+import com.hisaab.diary.domain.usecase.ObservePartiesUseCase
 import com.hisaab.diary.domain.usecase.ObserveSelectedBookUseCase
 import com.hisaab.diary.util.MainDispatcherRule
 import kotlinx.coroutines.test.runTest
@@ -25,11 +26,13 @@ class HomeViewModelTest {
 
     private val store = FakeStore()
     private val books = FakeBookRepository(store)
+    private val parties = FakePartyRepository(store)
     private val settings = FakeSettingsRepository()
 
     private fun viewModel() = HomeViewModel(
         ObserveSelectedBookUseCase(settings, books),
         ObserveBookTotalsUseCase(books),
+        ObservePartiesUseCase(parties),
     )
 
     @Test
@@ -41,29 +44,35 @@ class HomeViewModelTest {
             val loaded = awaitItem()
             assertEquals("Personal", loaded.bookName)
             assertEquals(BookTotals(Money.ZERO, Money.ZERO), loaded.totals)
+            assertTrue(loaded.parties.isEmpty())
         }
     }
 
     @Test
-    fun `totals update when entries change and follow the selected book`() = runTest {
+    fun `parties and totals update live and follow the selected book`() = runTest {
         val personal = books.addBook("Personal")
         val shop = books.addBook("Shop")
         settings.setSelectedBook(personal)
-        val ali = FakePartyRepository(store).addParty(personal, "Ali", null, null)
+        val ali = parties.addParty(personal, "Ali", null, null)
 
         viewModel().uiState.test {
-            assertEquals(BookTotals(Money.ZERO, Money.ZERO), expectMostRecentItem().totals)
+            val first = expectMostRecentItem()
+            assertEquals(listOf("Ali"), first.parties.map { it.party.name })
 
-            FakeEntryRepository(store).addEntry(entry(ali, EntryType.GAVE, 5_000))
-            assertEquals(Money(5_000), awaitItem().totals!!.willGet)
+            FakeEntryRepository(store).addEntry(Entry(0, ali, EntryType.GAVE, Money(5_000), null, 0, null, null, 0, 0))
+            // Totals and parties are separate flows, so wait until both have updated.
+            var updated = awaitItem()
+            while (updated.parties.single().balance != Money(-5_000) || updated.totals!!.willGet != Money(5_000)) {
+                updated = awaitItem()
+            }
+            assertEquals(Money(5_000), updated.totals!!.willGet)
+            assertEquals(Money(-5_000), updated.parties.single().balance)
 
             settings.setSelectedBook(shop)
-            val shopState = awaitItem()
+            var shopState = awaitItem()
+            while (shopState.bookName != "Shop") shopState = awaitItem()
             assertEquals("Shop", shopState.bookName)
-            assertEquals(Money.ZERO, shopState.totals!!.willGet)
+            assertTrue(shopState.parties.isEmpty())
         }
     }
-
-    private fun entry(partyId: Long, type: EntryType, paisa: Long) =
-        Entry(0, partyId, type, Money(paisa), null, 0, null, null, 0, 0)
 }
