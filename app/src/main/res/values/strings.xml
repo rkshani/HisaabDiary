@@ -101,6 +101,19 @@
     <string name="reminder_no_app">No app found to send the message.</string>
     <string name="reminder_message">Assalam o Alaikum %1$s,\n\nThis is a gentle reminder that\n%2$s is pending in my khata.\nPlease pay when you can.\n\nThank you!\n— sent from %3$s</string>
 
+    <!-- Due date notifications -->
+    <string name="notification_channel_dues">Due date reminders</string>
+    <string name="notification_channel_dues_desc">A reminder on the day money is due.</string>
+    <string name="notification_title">Hisaab Diary reminder</string>
+    <string name="notification_collect">Collect %1$s from %2$s</string>
+    <string name="notification_pay">Pay %1$s to %2$s</string>
+    <string name="notification_due_today">due today</string>
+    <string name="notification_line">%1$s — %2$s</string>
+    <plurals name="notification_overdue_days">
+        <item quantity="one">%d day late</item>
+        <item quantity="other">%d days late</item>
+    </plurals>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>

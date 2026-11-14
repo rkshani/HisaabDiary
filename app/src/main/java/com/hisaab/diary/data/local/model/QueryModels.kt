@@ -24,3 +24,13 @@ data class BookTotals(
     @ColumnInfo(name = "will_get") val willGetPaisa: Long,
     @ColumnInfo(name = "will_give") val willGivePaisa: Long,
 )
+
+/** An open reminder with its party name and current balance (GOT − GAVE, in paisa). */
+data class ReminderWithParty(
+    val id: Long,
+    @ColumnInfo(name = "party_id") val partyId: Long,
+    @ColumnInfo(name = "book_id") val bookId: Long,
+    @ColumnInfo(name = "party_name") val partyName: String,
+    @ColumnInfo(name = "remind_at") val remindAt: Long,
+    val balance: Long,
+)

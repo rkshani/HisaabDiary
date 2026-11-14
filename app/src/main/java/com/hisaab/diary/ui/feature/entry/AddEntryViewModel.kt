@@ -19,6 +19,7 @@ import com.hisaab.diary.domain.usecase.EntryInput
 import com.hisaab.diary.domain.usecase.GetPartyUseCase
 import com.hisaab.diary.domain.usecase.GetTransactionUseCase
 import com.hisaab.diary.domain.usecase.RecentlyDeletedEntry
+import com.hisaab.diary.domain.usecase.SetPartyReminderUseCase
 import com.hisaab.diary.domain.usecase.UpdateTransactionUseCase
 import com.hisaab.diary.ui.navigation.AddEntryRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -96,6 +97,7 @@ class AddEntryViewModel @Inject constructor(
     private val getParty: GetPartyUseCase,
     private val dateUtils: DateUtils,
     private val attachments: AttachmentStorage,
+    private val setPartyReminder: SetPartyReminderUseCase,
 ) : ViewModel() {
     /** Photo the entry had when we opened it (edit mode). */
     private var originalAttachment: String? = null
@@ -198,6 +200,7 @@ class AddEntryViewModel @Inject constructor(
             }
             if (error == null) {
                 onSaved(current.attachmentPath)
+                current.dueDate?.let { setPartyReminder(route.partyId, it) }
                 _effects.send(AddEntryEffect.Saved)
             } else {
                 _state.update { it.copy(error = error) }
