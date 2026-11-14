@@ -1,11 +1,13 @@
 package com.hisaab.diary.ui.feature.entry
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.hisaab.diary.core.date.DateUtils
 import com.hisaab.diary.core.money.AmountCalculator
 import com.hisaab.diary.core.money.Money
+import com.hisaab.diary.data.fake.FakeAttachmentStorage
 import com.hisaab.diary.domain.fake.FakeEntryRepository
 import com.hisaab.diary.domain.fake.FakePartyRepository
 import com.hisaab.diary.domain.fake.FakeStore
@@ -42,6 +44,7 @@ class AddEntryViewModelTest {
     private val partyId = runBlocking { parties.addParty(1, "Ali", null, null) }
 
     private val recentlyDeleted = RecentlyDeletedEntry()
+    private val attachments = FakeAttachmentStorage()
 
     private fun viewModel(isGave: Boolean = true, entryId: Long? = null): AddEntryViewModel {
         val args = buildMap<String, Any> {
@@ -58,6 +61,7 @@ class AddEntryViewModelTest {
             recentlyDeleted,
             GetPartyUseCase(parties),
             dateUtils,
+            attachments,
         )
     }
 
@@ -140,6 +144,43 @@ class AddEntryViewModelTest {
         }
         assertNull(entries.getEntry(id))
         assertEquals(id, recentlyDeleted.entry.value!!.id)
+    }
+
+    @Test
+    fun photoIsAttachedReplacedAndSaved() = runTest {
+        val vm = viewModel()
+        vm.onEvent(AddEntryEvent.AttachmentPicked(Uri.parse("content://a")))
+        assertEquals("/bills/photo1.jpg", vm.state.value.attachmentPath)
+
+        // Replacing an unsaved photo deletes the first one.
+        vm.onEvent(AddEntryEvent.AttachmentPicked(Uri.parse("content://b")))
+        assertEquals("/bills/photo2.jpg", vm.state.value.attachmentPath)
+        assertEquals(listOf("/bills/photo1.jpg"), attachments.deleted)
+
+        "10".forEach { vm.onEvent(AddEntryEvent.Key(it)) }
+        vm.effects.test {
+            vm.onEvent(AddEntryEvent.Save)
+            awaitItem()
+        }
+        assertEquals("/bills/photo2.jpg", store.entries.value.single().attachmentPath)
+    }
+
+    @Test
+    fun editingReplacesOldPhotoOnlyAfterSave() = runTest {
+        val id = entries.addEntry(
+            Entry(0, partyId, EntryType.GAVE, Money(500), null, DAY, null, "/bills/old.jpg", 0, 0),
+        )
+        val vm = viewModel(entryId = id)
+        vm.onEvent(AddEntryEvent.RemoveAttachment)
+        assertNull(vm.state.value.attachmentPath)
+        assertEquals(emptyList<String>(), attachments.deleted)
+
+        vm.effects.test {
+            vm.onEvent(AddEntryEvent.Save)
+            awaitItem()
+        }
+        assertEquals(listOf("/bills/old.jpg"), attachments.deleted)
+        assertNull(entries.getEntry(id)!!.attachmentPath)
     }
 
     @Test

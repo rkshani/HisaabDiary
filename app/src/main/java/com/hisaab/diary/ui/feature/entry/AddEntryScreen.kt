@@ -1,5 +1,10 @@
 package com.hisaab.diary.ui.feature.entry
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -48,6 +54,8 @@ import com.hisaab.diary.core.date.DateFormatter
 import com.hisaab.diary.domain.model.EntryType
 import com.hisaab.diary.domain.usecase.EntryError
 import com.hisaab.diary.domain.usecase.EntryValidator
+import com.hisaab.diary.ui.components.BillThumbnail
+import com.hisaab.diary.ui.components.BillViewer
 import com.hisaab.diary.ui.components.formatMoney
 import com.hisaab.diary.ui.theme.HisaabTheme
 import com.hisaab.diary.ui.theme.amount
@@ -68,7 +76,30 @@ fun AddEntryDestination(
             }
         }
     }
-    AddEntryScreen(state = state, onEvent = viewModel::onEvent, onBack = onBack, modifier = modifier)
+    var cameraUri by rememberSaveable { mutableStateOf<Uri?>(null) }
+    val takePhoto = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+        val uri = cameraUri
+        if (ok && uri != null) viewModel.onEvent(AddEntryEvent.AttachmentPicked(uri))
+    }
+    val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { viewModel.onEvent(AddEntryEvent.AttachmentPicked(it)) }
+    }
+    AddEntryScreen(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onBack = onBack,
+        onTakePhoto = {
+            val uri = viewModel.newCameraUri()
+            cameraUri = uri
+            runCatching { takePhoto.launch(uri) }
+        },
+        onPickPhoto = {
+            runCatching {
+                pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            }
+        },
+        modifier = modifier,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,6 +108,8 @@ fun AddEntryScreen(
     state: AddEntryUiState,
     onEvent: (AddEntryEvent) -> Unit,
     onBack: () -> Unit,
+    onTakePhoto: () -> Unit,
+    onPickPhoto: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val typeColor = if (state.type == EntryType.GAVE) HisaabTheme.colors.willGive else HisaabTheme.colors.willGet
@@ -131,6 +164,12 @@ fun AddEntryScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 DateChips(state = state, onEvent = onEvent)
+                AttachmentRow(
+                    path = state.attachmentPath,
+                    onTakePhoto = onTakePhoto,
+                    onPickPhoto = onPickPhoto,
+                    onRemove = { onEvent(AddEntryEvent.RemoveAttachment) },
+                )
             }
             Keypad(
                 onKey = { onEvent(AddEntryEvent.Key(it)) },
@@ -259,3 +298,42 @@ private fun DateChips(state: AddEntryUiState, onEvent: (AddEntryEvent) -> Unit, 
 
 private const val PICK_DATE = "date"
 private const val PICK_DUE = "due"
+
+@Composable
+private fun AttachmentRow(
+    path: String?,
+    onTakePhoto: () -> Unit,
+    onPickPhoto: () -> Unit,
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var viewing by rememberSaveable { mutableStateOf(false) }
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (path == null) {
+            AssistChip(
+                onClick = onTakePhoto,
+                label = { Text(stringResource(R.string.action_take_photo)) },
+                leadingIcon = { Icon(painterResource(R.drawable.ic_camera), contentDescription = null) },
+            )
+            AssistChip(
+                onClick = onPickPhoto,
+                label = { Text(stringResource(R.string.action_pick_photo)) },
+                leadingIcon = { Icon(painterResource(R.drawable.ic_image), contentDescription = null) },
+            )
+        } else {
+            BillThumbnail(
+                path = path,
+                contentDescription = stringResource(R.string.bill_photo),
+                modifier = Modifier.clickable { viewing = true },
+            )
+            TextButton(onClick = onRemove) { Text(stringResource(R.string.action_remove_photo)) }
+        }
+    }
+    if (viewing && path != null) {
+        BillViewer(path = path, onDismiss = { viewing = false })
+    }
+}
