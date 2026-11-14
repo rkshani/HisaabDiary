@@ -155,7 +155,10 @@
 
     <!-- CSV export -->
     <string name="action_export_csv">Export CSV</string>
-    <string name="csv_saved">Saved %1$d entries as CSV.</string>
+    <plurals name="csv_saved">
+        <item quantity="one">Saved %d entry as CSV.</item>
+        <item quantity="other">Saved %d entries as CSV.</item>
+    </plurals>
     <string name="csv_failed">Could not save the CSV file.</string>
     <string name="csv_date">Date</string>
     <string name="csv_book">Book</string>

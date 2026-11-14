@@ -41,7 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
@@ -64,12 +64,12 @@ import com.hisaab.diary.ui.theme.amount
 fun ReportsDestination(modifier: Modifier = Modifier, viewModel: ReportsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
+    val resources = LocalResources.current
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             val message = when (effect) {
-                is ReportsEffect.CsvSaved -> context.getString(R.string.csv_saved, effect.rows)
-                ReportsEffect.CsvFailed -> context.getString(R.string.csv_failed)
+                is ReportsEffect.CsvSaved -> resources.getQuantityString(R.plurals.csv_saved, effect.rows, effect.rows)
+                ReportsEffect.CsvFailed -> resources.getString(R.string.csv_failed)
             }
             snackbarHostState.showSnackbar(message)
         }

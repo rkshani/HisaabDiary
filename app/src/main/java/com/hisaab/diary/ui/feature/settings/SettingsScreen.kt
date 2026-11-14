@@ -41,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -61,15 +62,16 @@ import com.hisaab.diary.ui.feature.lock.PinDots
 fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(viewModel) {
         viewModel.messages.collect { message ->
             val text = when (message) {
-                SettingsMessage.BACKUP_DONE -> context.getString(R.string.backup_done)
-                SettingsMessage.BACKUP_FAILED -> context.getString(R.string.backup_failed)
-                SettingsMessage.NOT_A_BACKUP -> context.getString(R.string.restore_not_backup)
-                SettingsMessage.NEWER_VERSION -> context.getString(R.string.restore_newer_version)
-                SettingsMessage.RESTORE_FAILED -> context.getString(R.string.restore_failed)
+                SettingsMessage.BACKUP_DONE -> resources.getString(R.string.backup_done)
+                SettingsMessage.BACKUP_FAILED -> resources.getString(R.string.backup_failed)
+                SettingsMessage.NOT_A_BACKUP -> resources.getString(R.string.restore_not_backup)
+                SettingsMessage.NEWER_VERSION -> resources.getString(R.string.restore_newer_version)
+                SettingsMessage.RESTORE_FAILED -> resources.getString(R.string.restore_failed)
             }
             snackbarHostState.showSnackbar(text)
         }
