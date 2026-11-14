@@ -46,6 +46,26 @@
     <string name="filter_settled">Settled</string>
     <string name="no_matching_parties">No one matches your search.</string>
 
+    <!-- Add / edit party -->
+    <string name="action_add_person">Add person</string>
+    <string name="add_party_title">Add person</string>
+    <string name="edit_party_title">Edit person</string>
+    <string name="pick_from_contacts">Pick from contacts</string>
+    <string name="error_no_contacts_app">No contacts app found on this phone.</string>
+    <string name="field_name_required">Name *</string>
+    <string name="field_phone_optional">Phone (optional)</string>
+    <string name="field_note_optional">Note (optional)</string>
+    <string name="error_name_empty">Please enter a name.</string>
+    <string name="error_name_too_long">Name is too long (max 60 letters).</string>
+    <string name="error_phone_invalid">Please enter a valid phone number.</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_archive">Archive</string>
+    <string name="action_unarchive">Unarchive</string>
+    <string name="delete_party_title">Delete this person?</string>
+    <string name="delete_party_body">All entries of %1$s will be deleted. This cannot be undone.</string>
+
     <!-- Entry types -->
     <string name="action_you_gave">You gave</string>
     <string name="action_you_got">You got</string>
