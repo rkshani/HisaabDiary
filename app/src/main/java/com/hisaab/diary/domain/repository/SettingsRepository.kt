@@ -17,4 +17,15 @@ interface SettingsRepository {
     suspend fun setCurrencySymbol(symbol: CurrencySymbol)
 
     suspend fun setOnboardingDone(done: Boolean)
+
+    /** Saves the PIN hash; null values turn the app lock off. */
+    suspend fun setPin(hash: String?, salt: String?)
+
+    suspend fun setBiometricEnabled(enabled: Boolean)
+
+    suspend fun setLockTimeoutSeconds(seconds: Int)
+
+    suspend fun setHideAmounts(hide: Boolean)
+
+    suspend fun setBlockScreenshots(block: Boolean)
 }

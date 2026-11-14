@@ -21,4 +21,16 @@ class FakeSettingsRepository(initial: AppSettings = AppSettings()) : SettingsRep
     }
 
     override suspend fun setOnboardingDone(done: Boolean) = settings.update { it.copy(onboardingDone = done) }
+
+    override suspend fun setPin(hash: String?, salt: String?) = settings.update {
+        it.copy(pinHash = hash, pinSalt = salt, biometricEnabled = it.biometricEnabled && hash != null)
+    }
+
+    override suspend fun setBiometricEnabled(enabled: Boolean) = settings.update { it.copy(biometricEnabled = enabled) }
+
+    override suspend fun setLockTimeoutSeconds(seconds: Int) = settings.update { it.copy(lockTimeoutSeconds = seconds) }
+
+    override suspend fun setHideAmounts(hide: Boolean) = settings.update { it.copy(hideAmounts = hide) }
+
+    override suspend fun setBlockScreenshots(block: Boolean) = settings.update { it.copy(blockScreenshots = block) }
 }

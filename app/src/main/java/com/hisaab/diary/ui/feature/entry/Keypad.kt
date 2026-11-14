@@ -33,13 +33,28 @@ import com.hisaab.diary.core.money.AmountCalculator
  * Layout is fixed left-to-right like every calculator, also in RTL.
  */
 @Composable
-fun Keypad(onKey: (Char) -> Unit, onBackspace: () -> Unit, onClear: () -> Unit, modifier: Modifier = Modifier) {
-    val rows = listOf(
-        listOf('7', '8', '9', AmountCalculator.DIVIDE),
-        listOf('4', '5', '6', AmountCalculator.TIMES),
-        listOf('1', '2', '3', AmountCalculator.MINUS),
-        listOf('.', '0', BACKSPACE, AmountCalculator.PLUS),
-    )
+fun Keypad(
+    onKey: (Char) -> Unit,
+    onBackspace: () -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier,
+    digitsOnly: Boolean = false,
+) {
+    val rows = if (digitsOnly) {
+        listOf(
+            listOf('1', '2', '3'),
+            listOf('4', '5', '6'),
+            listOf('7', '8', '9'),
+            listOf('0', BACKSPACE),
+        )
+    } else {
+        listOf(
+            listOf('7', '8', '9', AmountCalculator.DIVIDE),
+            listOf('4', '5', '6', AmountCalculator.TIMES),
+            listOf('1', '2', '3', AmountCalculator.MINUS),
+            listOf('.', '0', BACKSPACE, AmountCalculator.PLUS),
+        )
+    }
     val backspaceLabel = stringResource(R.string.key_backspace)
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {

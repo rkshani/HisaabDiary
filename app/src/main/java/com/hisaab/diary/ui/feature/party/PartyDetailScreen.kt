@@ -75,6 +75,7 @@ fun PartyDetailDestination(
     val context = LocalContext.current
     val exportFailedMessage = stringResource(R.string.pdf_failed)
     val shareTitle = stringResource(R.string.pdf_share_title)
+    val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
@@ -88,7 +89,6 @@ fun PartyDetailDestination(
         }
     }
     val currentOnBack by rememberUpdatedState(onBack)
-    val snackbarHostState = remember { SnackbarHostState() }
     val pendingUndo by viewModel.pendingUndo.collectAsStateWithLifecycle()
     val deletedMessage = stringResource(R.string.entry_deleted)
     val undoLabel = stringResource(R.string.action_undo)
