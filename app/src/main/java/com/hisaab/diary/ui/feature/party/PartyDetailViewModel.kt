@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.hisaab.diary.core.date.DateUtils
+import com.hisaab.diary.data.export.StatementExporter
 import com.hisaab.diary.data.files.AttachmentStorage
 import com.hisaab.diary.domain.model.Entry
 import com.hisaab.diary.domain.model.LedgerEntry
@@ -16,16 +17,27 @@ import com.hisaab.diary.domain.usecase.SettleUpUseCase
 import com.hisaab.diary.domain.usecase.UndoDeleteTransactionUseCase
 import com.hisaab.diary.ui.navigation.PartyDetailRoute
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.File
 import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** Entries of one day, newest entry first. */
 data class LedgerDay(val dayStart: Long, val entries: List<LedgerEntry>)
+
+sealed interface PartyDetailEffect {
+    data class SharePdf(val file: File) : PartyDetailEffect
+
+    data object ExportFailed : PartyDetailEffect
+}
 
 data class PartyDetailUiState(
     val isLoading: Boolean = true,
@@ -38,13 +50,17 @@ data class PartyDetailUiState(
 class PartyDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     observeParty: ObservePartyUseCase,
-    observeLedger: ObserveLedgerUseCase,
+    private val observeLedger: ObserveLedgerUseCase,
     private val dateUtils: DateUtils,
     private val recentlyDeleted: RecentlyDeletedEntry,
     private val undoDelete: UndoDeleteTransactionUseCase,
     private val attachments: AttachmentStorage,
     private val settleUpUseCase: SettleUpUseCase,
+    private val statementExporter: StatementExporter,
 ) : ViewModel() {
+    private val _effects = Channel<PartyDetailEffect>(Channel.BUFFERED)
+    val effects: Flow<PartyDetailEffect> = _effects.receiveAsFlow()
+
     val partyId: Long = savedStateHandle.toRoute<PartyDetailRoute>().partyId
 
     val uiState: StateFlow<PartyDetailUiState> =
@@ -64,6 +80,15 @@ class PartyDetailViewModel @Inject constructor(
     fun undo(entry: Entry) {
         recentlyDeleted.clear(entry)
         viewModelScope.launch { undoDelete(entry) }
+    }
+
+    /** Makes the statement PDF; the screen then opens the share sheet. */
+    fun exportPdf() {
+        viewModelScope.launch {
+            val summary = uiState.value.summary ?: return@launch
+            val file = statementExporter.export(summary, observeLedger(partyId).first())
+            _effects.send(if (file != null) PartyDetailEffect.SharePdf(file) else PartyDetailEffect.ExportFailed)
+        }
     }
 
     /** Adds the entry that makes the balance zero. The UI confirms first. */

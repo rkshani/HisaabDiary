@@ -5,6 +5,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.cash.turbine.test
 import com.hisaab.diary.core.date.DateUtils
 import com.hisaab.diary.core.money.Money
+import com.hisaab.diary.data.export.StatementExporter
 import com.hisaab.diary.data.fake.FakeAttachmentStorage
 import com.hisaab.diary.domain.fake.FakeEntryRepository
 import com.hisaab.diary.domain.fake.FakePartyRepository
@@ -12,6 +13,7 @@ import com.hisaab.diary.domain.fake.FakeStore
 import com.hisaab.diary.domain.model.Entry
 import com.hisaab.diary.domain.model.EntryType
 import com.hisaab.diary.domain.model.LedgerEntry
+import com.hisaab.diary.domain.model.PartySummary
 import com.hisaab.diary.domain.usecase.AddTransactionUseCase
 import com.hisaab.diary.domain.usecase.DeleteTransactionUseCase
 import com.hisaab.diary.domain.usecase.ObserveLedgerUseCase
@@ -20,6 +22,7 @@ import com.hisaab.diary.domain.usecase.RecentlyDeletedEntry
 import com.hisaab.diary.domain.usecase.SettleUpUseCase
 import com.hisaab.diary.domain.usecase.UndoDeleteTransactionUseCase
 import com.hisaab.diary.util.MainDispatcherRule
+import java.io.File
 import java.util.TimeZone
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -42,6 +45,14 @@ class PartyDetailViewModelTest {
 
     private val recentlyDeleted = RecentlyDeletedEntry()
     private val attachments = FakeAttachmentStorage()
+    private var exportResult: File? = File("statement.pdf")
+    private var exportedRows = -1
+    private val exporter = object : StatementExporter {
+        override suspend fun export(summary: PartySummary, ledger: List<LedgerEntry>): File? {
+            exportedRows = ledger.size
+            return exportResult
+        }
+    }
 
     private fun viewModel(partyId: Long) = PartyDetailViewModel(
         SavedStateHandle(mapOf("partyId" to partyId)),
@@ -52,6 +63,7 @@ class PartyDetailViewModelTest {
         UndoDeleteTransactionUseCase(entries),
         attachments,
         SettleUpUseCase(parties, AddTransactionUseCase(entries) { 0 }, { 0 }),
+        exporter,
     )
 
     @Test
@@ -118,6 +130,27 @@ class PartyDetailViewModelTest {
         val last = store.entries.value.last()
         assertEquals(EntryType.GOT, last.type)
         assertEquals(Money(900), last.amount)
+    }
+
+    @Test
+    fun exportPdfSendsShareEffectWithWholeLedger() = runTest {
+        val ali = parties.addParty(1, "Ali", null, null)
+        entries.addEntry(entry(ali, EntryType.GAVE, 100, date = DAY))
+        entries.addEntry(entry(ali, EntryType.GOT, 50, date = 2 * DAY))
+        val vm = viewModel(ali)
+        vm.uiState.test {
+            var state = awaitItem()
+            while (state.summary == null) state = awaitItem()
+            vm.effects.test {
+                vm.exportPdf()
+                assertEquals(PartyDetailEffect.SharePdf(File("statement.pdf")), awaitItem())
+                exportResult = null
+                vm.exportPdf()
+                assertEquals(PartyDetailEffect.ExportFailed, awaitItem())
+            }
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertEquals(2, exportedRows)
     }
 
     @Test
