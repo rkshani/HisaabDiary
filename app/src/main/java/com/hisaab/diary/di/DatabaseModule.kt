@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.hisaab.diary.data.local.HisaabDatabase
 import com.hisaab.diary.data.local.dao.BookDao
 import com.hisaab.diary.data.local.dao.PartyDao
+import com.hisaab.diary.data.local.dao.ReminderDao
 import com.hisaab.diary.data.local.dao.TransactionDao
 import dagger.Module
 import dagger.Provides
@@ -35,4 +36,7 @@ object DaoModule {
 
     @Provides
     fun provideTransactionDao(db: HisaabDatabase): TransactionDao = db.transactionDao()
+
+    @Provides
+    fun provideReminderDao(db: HisaabDatabase): ReminderDao = db.reminderDao()
 }

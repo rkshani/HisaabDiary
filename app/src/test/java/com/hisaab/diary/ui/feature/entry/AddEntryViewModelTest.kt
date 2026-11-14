@@ -10,6 +10,7 @@ import com.hisaab.diary.core.money.Money
 import com.hisaab.diary.data.fake.FakeAttachmentStorage
 import com.hisaab.diary.domain.fake.FakeEntryRepository
 import com.hisaab.diary.domain.fake.FakePartyRepository
+import com.hisaab.diary.domain.fake.FakeReminderRepository
 import com.hisaab.diary.domain.fake.FakeStore
 import com.hisaab.diary.domain.model.Entry
 import com.hisaab.diary.domain.model.EntryType
@@ -19,6 +20,7 @@ import com.hisaab.diary.domain.usecase.EntryError
 import com.hisaab.diary.domain.usecase.GetPartyUseCase
 import com.hisaab.diary.domain.usecase.GetTransactionUseCase
 import com.hisaab.diary.domain.usecase.RecentlyDeletedEntry
+import com.hisaab.diary.domain.usecase.SetPartyReminderUseCase
 import com.hisaab.diary.domain.usecase.UpdateTransactionUseCase
 import com.hisaab.diary.util.MainDispatcherRule
 import java.util.TimeZone
@@ -45,6 +47,7 @@ class AddEntryViewModelTest {
 
     private val recentlyDeleted = RecentlyDeletedEntry()
     private val attachments = FakeAttachmentStorage()
+    private val reminders = FakeReminderRepository()
 
     private fun viewModel(isGave: Boolean = true, entryId: Long? = null): AddEntryViewModel {
         val args = buildMap<String, Any> {
@@ -62,6 +65,7 @@ class AddEntryViewModelTest {
             GetPartyUseCase(parties),
             dateUtils,
             attachments,
+            SetPartyReminderUseCase(reminders),
         )
     }
 
@@ -181,6 +185,18 @@ class AddEntryViewModelTest {
         }
         assertEquals(listOf("/bills/old.jpg"), attachments.deleted)
         assertNull(entries.getEntry(id)!!.attachmentPath)
+    }
+
+    @Test
+    fun savingWithDueDateSetsPartyReminder() = runTest {
+        val vm = viewModel()
+        "5".forEach { vm.onEvent(AddEntryEvent.Key(it)) }
+        vm.onEvent(AddEntryEvent.DueDatePicked(DAY * 25))
+        vm.effects.test {
+            vm.onEvent(AddEntryEvent.Save)
+            awaitItem()
+        }
+        assertEquals(mapOf(partyId to DAY * 26 - 1), reminders.setFor)
     }
 
     @Test

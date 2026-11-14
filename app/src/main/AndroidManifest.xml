@@ -2,6 +2,9 @@
 <!-- Hisaab Diary is FULLY OFFLINE. Never add the INTERNET permission. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Local due-date reminders (Android 13+ asks the user; asked only when a due date is set). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:name=".HisaabApp"
         android:allowBackup="false"
