@@ -33,16 +33,15 @@ data class BackupMeta(
     val billCount: Int,
 )
 
-/**
- * Makes a `.hisaab` backup: a zip with the Room database, bill photos and [BackupMeta],
- * optionally encrypted with a password (see [BackupCrypto]). Fully offline.
- */
-
 /** Backup and restore, behind an interface so ViewModels can be tested. */
 interface BackupService {
     suspend fun create(target: Uri, password: String?): Boolean
 }
 
+/**
+ * Makes a `.hisaab` backup: a zip with the Room database, bill photos and [BackupMeta],
+ * optionally encrypted with a password (see [BackupCrypto]). Fully offline.
+ */
 @Singleton
 class BackupManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
