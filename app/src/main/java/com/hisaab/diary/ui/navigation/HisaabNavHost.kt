@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.hisaab.diary.ui.feature.entry.AddEntryScreen
-import com.hisaab.diary.ui.feature.home.HomeScreen
+import com.hisaab.diary.ui.feature.home.HomeRoute
 import com.hisaab.diary.ui.feature.party.PartyDetailScreen
 import com.hisaab.diary.ui.feature.reports.ReportsScreen
 import com.hisaab.diary.ui.feature.settings.SettingsScreen
@@ -20,7 +20,7 @@ fun HisaabNavHost(navController: NavHostController, modifier: Modifier = Modifie
         modifier = modifier,
     ) {
         composable<HomeRoute> {
-            HomeScreen(
+            HomeRoute(
                 onOpenParty = { partyId -> navController.navigate(PartyDetailRoute(partyId)) },
             )
         }
