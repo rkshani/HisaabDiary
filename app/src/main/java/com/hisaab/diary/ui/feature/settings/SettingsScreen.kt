@@ -1,5 +1,9 @@
 package com.hisaab.diary.ui.feature.settings
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Process
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.biometric.BiometricManager
@@ -13,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,6 +52,7 @@ import com.hisaab.diary.core.date.DateFormatter
 import com.hisaab.diary.core.security.PinHasher
 import com.hisaab.diary.data.backup.BackupManager
 import com.hisaab.diary.domain.model.AppSettings
+import com.hisaab.diary.ui.MainActivity
 import com.hisaab.diary.ui.feature.entry.Keypad
 import com.hisaab.diary.ui.feature.lock.PinDots
 
@@ -59,6 +66,9 @@ fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewMo
             val text = when (message) {
                 SettingsMessage.BACKUP_DONE -> context.getString(R.string.backup_done)
                 SettingsMessage.BACKUP_FAILED -> context.getString(R.string.backup_failed)
+                SettingsMessage.NOT_A_BACKUP -> context.getString(R.string.restore_not_backup)
+                SettingsMessage.NEWER_VERSION -> context.getString(R.string.restore_newer_version)
+                SettingsMessage.RESTORE_FAILED -> context.getString(R.string.restore_failed)
             }
             snackbarHostState.showSnackbar(text)
         }
@@ -67,6 +77,17 @@ fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewMo
         ActivityResultContracts.CreateDocument("application/octet-stream"),
     ) { uri -> uri?.let(viewModel::createBackup) }
     val today = remember { DateFormatter().fileDate(System.currentTimeMillis()) }
+    val openBackup = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let(viewModel::onRestoreFilePicked)
+    }
+    val restoreStep by viewModel.restore.collectAsStateWithLifecycle()
+    RestoreDialogs(
+        step = restoreStep,
+        onPassword = viewModel::onRestorePassword,
+        onConfirm = viewModel::onRestoreConfirmed,
+        onCancel = viewModel::onRestoreCancelled,
+        onRestart = { restartApp(context) },
+    )
     val biometricAvailable = BiometricManager.from(context)
         .canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK) == BiometricManager.BIOMETRIC_SUCCESS
     SettingsScreen(
@@ -84,6 +105,7 @@ fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewMo
                 viewModel.startBackup(password)
                 runCatching { saveBackup.launch(BackupManager.fileName(today)) }
             },
+            onRestoreBackup = { runCatching { openBackup.launch(arrayOf("*/*")) } },
         ),
         modifier = modifier,
     )
@@ -98,6 +120,7 @@ class SettingsActions(
     val onHideAmountsChange: (Boolean) -> Unit,
     val onBlockScreenshotsChange: (Boolean) -> Unit,
     val onCreateBackup: (password: String?) -> Unit,
+    val onRestoreBackup: () -> Unit,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -165,6 +188,11 @@ fun SettingsScreen(
                 title = stringResource(R.string.backup_create),
                 subtitle = stringResource(R.string.backup_create_desc),
                 onClick = { askBackupPassword = true },
+            )
+            ClickRow(
+                title = stringResource(R.string.restore_backup),
+                subtitle = stringResource(R.string.restore_backup_desc),
+                onClick = actions.onRestoreBackup,
             )
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
         }
@@ -377,4 +405,80 @@ private fun BackupPasswordDialog(onConfirm: (String?) -> Unit, onDismiss: () -> 
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
+}
+
+@Composable
+private fun RestoreDialogs(
+    step: RestoreStep,
+    onPassword: (Uri, String) -> Unit,
+    onConfirm: (Uri, String?) -> Unit,
+    onCancel: () -> Unit,
+    onRestart: () -> Unit,
+) {
+    when (step) {
+        RestoreStep.Idle -> Unit
+
+        is RestoreStep.NeedPassword -> {
+            var password by rememberSaveable(step) { mutableStateOf("") }
+            AlertDialog(
+                onDismissRequest = onCancel,
+                title = { Text(stringResource(R.string.restore_password_title)) },
+                text = {
+                    Column {
+                        if (step.wrong) {
+                            Text(
+                                stringResource(R.string.restore_wrong_password),
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = { Text(stringResource(R.string.backup_password)) },
+                            visualTransformation = PasswordVisualTransformation(),
+                            singleLine = true,
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { onPassword(step.source, password) }, enabled = password.isNotEmpty()) {
+                        Text(stringResource(R.string.action_ok))
+                    }
+                },
+                dismissButton = { TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) } },
+            )
+        }
+
+        is RestoreStep.Confirm -> AlertDialog(
+            onDismissRequest = onCancel,
+            title = { Text(stringResource(R.string.restore_confirm_title)) },
+            text = { Text(stringResource(R.string.restore_confirm_body)) },
+            confirmButton = {
+                TextButton(onClick = { onConfirm(step.source, step.password) }) {
+                    Text(stringResource(R.string.restore_confirm_action), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) } },
+        )
+
+        RestoreStep.Working -> AlertDialog(
+            onDismissRequest = {},
+            title = { Text(stringResource(R.string.restore_working)) },
+            text = { CircularProgressIndicator() },
+            confirmButton = {},
+        )
+
+        RestoreStep.Restart -> {
+            val currentOnRestart by rememberUpdatedState(onRestart)
+            LaunchedEffect(Unit) { currentOnRestart() }
+        }
+    }
+}
+
+/** Starts the app fresh so the restored database is opened. */
+private fun restartApp(context: Context) {
+    val intent = Intent(context, MainActivity::class.java)
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+    context.startActivity(intent)
+    Process.killProcess(Process.myPid())
 }

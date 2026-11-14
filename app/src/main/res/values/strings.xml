@@ -220,6 +220,19 @@
     <string name="backup_done">Backup saved.</string>
     <string name="backup_failed">Could not save the backup.</string>
 
+    <!-- Restore -->
+    <string name="restore_backup">Restore backup</string>
+    <string name="restore_backup_desc">Open a .hisaab file. This replaces the data on this phone.</string>
+    <string name="restore_password_title">Backup password</string>
+    <string name="restore_wrong_password">Wrong password. Try again.</string>
+    <string name="restore_confirm_title">Replace current data?</string>
+    <string name="restore_confirm_body">All books, people, entries and photos on this phone will be replaced by the backup. The app will restart.</string>
+    <string name="restore_confirm_action">Replace and restart</string>
+    <string name="restore_working">Restoring…</string>
+    <string name="restore_not_backup">This file is not a Hisaab Diary backup.</string>
+    <string name="restore_newer_version">This backup is from a newer app version. Please update the app first.</string>
+    <string name="restore_failed">Could not restore the backup.</string>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>
