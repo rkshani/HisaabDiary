@@ -5,6 +5,7 @@ import com.hisaab.diary.domain.model.Book
 import com.hisaab.diary.domain.model.BookTotals
 import com.hisaab.diary.domain.model.Entry
 import com.hisaab.diary.domain.model.EntryType
+import com.hisaab.diary.domain.model.ExportRow
 import com.hisaab.diary.domain.model.LedgerEntry
 import com.hisaab.diary.domain.model.Party
 import com.hisaab.diary.domain.model.PartySummary
@@ -117,4 +118,13 @@ class FakeEntryRepository(private val store: FakeStore) : EntryRepository {
     override suspend fun deleteEntry(id: Long) = store.entries.update { list -> list.filterNot { it.id == id } }
 
     override suspend fun restoreEntry(entry: Entry) = store.entries.update { it + entry }
+
+    override suspend fun getForExport(bookId: Long?): List<ExportRow> = store.entries.value
+        .sortedWith(compareBy({ it.date }, { it.id }))
+        .mapNotNull { entry ->
+            val party = store.parties.value.find { it.id == entry.partyId } ?: return@mapNotNull null
+            if (bookId != null && party.bookId != bookId) return@mapNotNull null
+            val book = store.books.value.find { it.id == party.bookId }?.name.orEmpty()
+            ExportRow(entry, book, party.name, party.phone)
+        }
 }

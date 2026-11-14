@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import com.hisaab.diary.data.local.entity.TransactionEntity
+import com.hisaab.diary.data.local.model.ExportRowEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -24,6 +25,19 @@ interface TransactionDao {
         """,
     )
     fun observeByBookBetween(bookId: Long, from: Long, to: Long): Flow<List<TransactionEntity>>
+
+    /** All entries (of one book, or all books when [bookId] is null) with names, oldest first. */
+    @Query(
+        """
+        SELECT t.*, p.name AS party_name, p.phone AS party_phone, b.name AS book_name
+        FROM transactions t
+        INNER JOIN parties p ON p.id = t.party_id
+        INNER JOIN books b ON b.id = p.book_id
+        WHERE (:bookId IS NULL OR p.book_id = :bookId)
+        ORDER BY t.date, t.id
+        """,
+    )
+    suspend fun getForExport(bookId: Long?): List<ExportRowEntity>
 
     @Query("SELECT * FROM transactions WHERE id = :id")
     suspend fun getById(id: Long): TransactionEntity?

@@ -12,6 +12,7 @@ import com.hisaab.diary.data.mapper.toEntity
 import com.hisaab.diary.domain.model.Book
 import com.hisaab.diary.domain.model.BookTotals
 import com.hisaab.diary.domain.model.Entry
+import com.hisaab.diary.domain.model.ExportRow
 import com.hisaab.diary.domain.model.LedgerEntry
 import com.hisaab.diary.domain.model.Party
 import com.hisaab.diary.domain.model.PartySummary
@@ -104,6 +105,12 @@ class EntryRepositoryImpl @Inject constructor(
 
     override suspend fun deleteEntry(id: Long) = withContext(io) {
         dao.getById(id)?.let { dao.delete(it) } ?: Unit
+    }
+
+    override suspend fun getForExport(bookId: Long?): List<ExportRow> = withContext(io) {
+        dao.getForExport(bookId).map {
+            ExportRow(it.entry.toDomain(), bookName = it.bookName, partyName = it.partyName, partyPhone = it.partyPhone)
+        }
     }
 
     override suspend fun restoreEntry(entry: Entry) = withContext(io) {

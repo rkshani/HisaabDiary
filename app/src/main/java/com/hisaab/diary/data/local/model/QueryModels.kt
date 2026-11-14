@@ -3,6 +3,7 @@ package com.hisaab.diary.data.local.model
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import com.hisaab.diary.data.local.entity.PartyEntity
+import com.hisaab.diary.data.local.entity.TransactionEntity
 
 /**
  * A party with its totals.
@@ -33,4 +34,12 @@ data class ReminderWithParty(
     @ColumnInfo(name = "party_name") val partyName: String,
     @ColumnInfo(name = "remind_at") val remindAt: Long,
     val balance: Long,
+)
+
+/** An entry with the names needed for CSV export. */
+data class ExportRowEntity(
+    @Embedded val entry: TransactionEntity,
+    @ColumnInfo(name = "party_name") val partyName: String,
+    @ColumnInfo(name = "party_phone") val partyPhone: String?,
+    @ColumnInfo(name = "book_name") val bookName: String,
 )

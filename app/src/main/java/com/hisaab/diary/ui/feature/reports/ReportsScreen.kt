@@ -1,5 +1,7 @@
 package com.hisaab.diary.ui.feature.reports
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,13 +21,18 @@ import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +41,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hisaab.diary.R
 import com.hisaab.diary.core.date.DateFormatter
 import com.hisaab.diary.core.money.Money
+import com.hisaab.diary.data.export.ShareFiles
 import com.hisaab.diary.domain.model.EntryType
 import com.hisaab.diary.domain.usecase.Report
 import com.hisaab.diary.ui.components.formatMoney
@@ -53,8 +63,30 @@ import com.hisaab.diary.ui.theme.amount
 @Composable
 fun ReportsDestination(modifier: Modifier = Modifier, viewModel: ReportsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    LaunchedEffect(viewModel) {
+        viewModel.effects.collect { effect ->
+            val message = when (effect) {
+                is ReportsEffect.CsvSaved -> context.getString(R.string.csv_saved, effect.rows)
+                ReportsEffect.CsvFailed -> context.getString(R.string.csv_failed)
+            }
+            snackbarHostState.showSnackbar(message)
+        }
+    }
+    val saveCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
+        uri?.let(viewModel::exportCsv)
+    }
+    val fileDate = remember { DateFormatter() }
     ReportsScreen(
         state = state,
+        snackbarHostState = snackbarHostState,
+        onExportCsv = {
+            val name = ShareFiles.safeName(
+                "hisaab ${state.bookName} ${fileDate.fileDate(System.currentTimeMillis())}.csv",
+            )
+            runCatching { saveCsv.launch(name) }
+        },
         onRangeSelect = viewModel::onRangeSelected,
         onCustomRange = viewModel::onCustomRange,
         modifier = modifier,
@@ -65,6 +97,8 @@ fun ReportsDestination(modifier: Modifier = Modifier, viewModel: ReportsViewMode
 @Composable
 fun ReportsScreen(
     state: ReportsUiState,
+    snackbarHostState: SnackbarHostState,
+    onExportCsv: () -> Unit,
     onRangeSelect: (ReportRange) -> Unit,
     onCustomRange: (from: Long, to: Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -73,7 +107,17 @@ fun ReportsScreen(
     val formatter = remember { DateFormatter() }
     Scaffold(
         modifier = modifier,
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_reports)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.nav_reports)) },
+                actions = {
+                    IconButton(onClick = onExportCsv, enabled = !state.isLoading) {
+                        Icon(painterResource(R.drawable.ic_download), stringResource(R.string.action_export_csv))
+                    }
+                },
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         val report = state.report
         if (state.isLoading || report == null) {
