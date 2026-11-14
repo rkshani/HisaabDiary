@@ -37,12 +37,30 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    androidResources {
+        // English only. Drops other languages that libraries bring in.
+        localeFilters += listOf("en")
+    }
+
+    lint {
+        warningsAsErrors = true
+        abortOnError = true
+        checkDependencies = true
+        lintConfig = file("lint.xml")
+        // Known old issues (app icon comes in Phase 12.1). New issues fail the build.
+        baseline = file("lint-baseline.xml")
+    }
+
     buildFeatures {
         compose = true
     }
 
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        unitTests.all {
+            it.maxHeapSize = "1g"
+            it.maxParallelForks = 1
+        }
     }
 }
 
