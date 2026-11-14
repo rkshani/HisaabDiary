@@ -80,7 +80,7 @@ object AmountCalculator {
 
     private fun tokenize(expression: String): List<Token>? {
         if (expression.isBlank()) return null
-        val numbers = expression.split(*operators.toCharArray()).mapNotNull { it.toBigDecimalOrNull() }
+        val numbers = expression.split(PLUS, MINUS, TIMES, DIVIDE).mapNotNull { it.toBigDecimalOrNull() }
         val ops = expression.filter { it in operators }
         if (numbers.size != ops.length + 1) return null
         return buildList {
