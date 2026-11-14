@@ -1,6 +1,5 @@
 package com.hisaab.diary.data.files
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -70,8 +69,7 @@ class AndroidAttachmentStorage @Inject constructor(
         return resolver.openInputStream(source)?.use { BitmapFactory.decodeStream(it, null, options) }
     }
 
-    // Platform ExifInterface is fine here: we only read the orientation tag of our own picked image.
-    @SuppressLint("ExifInterface")
+    // Platform ExifInterface is fine here (see lint.xml): we only read the orientation tag.
     private fun rotateFromExif(source: Uri, bitmap: Bitmap): Bitmap {
         val orientation = context.contentResolver.openInputStream(source)?.use {
             ExifInterface(it).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
