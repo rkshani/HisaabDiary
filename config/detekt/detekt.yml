@@ -11,6 +11,10 @@ complexity:
     # Composables often take many parameters (modifier, state, callbacks).
     ignoreAnnotated: [ 'Composable' ]
   TooManyFunctions:
+    # Small helper classes (dates, DAOs, repositories) have many tiny functions.
+    thresholdInClasses: 16
+    thresholdInInterfaces: 16
+    thresholdInObjects: 16
     ignoreAnnotatedFunctions: [ 'Preview' ]
 
 style:
