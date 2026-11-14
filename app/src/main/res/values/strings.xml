@@ -33,6 +33,19 @@
     <string name="empty_parties_body">Add a person or shop to start writing your lena-dena.</string>
     <string name="add_first_person">Add first person</string>
 
+    <!-- Search, sort, filter -->
+    <string name="search_parties">Search name or phone</string>
+    <string name="action_clear_search">Clear search</string>
+    <string name="action_sort">Sort</string>
+    <string name="sort_recent">Recent</string>
+    <string name="sort_name">Name (A-Z)</string>
+    <string name="sort_highest">Highest amount</string>
+    <string name="filter_all">All</string>
+    <string name="filter_will_get">You will get</string>
+    <string name="filter_will_give">You will give</string>
+    <string name="filter_settled">Settled</string>
+    <string name="no_matching_parties">No one matches your search.</string>
+
     <!-- Entry types -->
     <string name="action_you_gave">You gave</string>
     <string name="action_you_got">You got</string>

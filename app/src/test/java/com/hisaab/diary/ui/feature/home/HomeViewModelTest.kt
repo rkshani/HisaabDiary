@@ -1,5 +1,6 @@
 package com.hisaab.diary.ui.feature.home
 
+import app.cash.turbine.ReceiveTurbine
 import app.cash.turbine.test
 import com.hisaab.diary.core.money.Money
 import com.hisaab.diary.domain.fake.FakeBookRepository
@@ -13,9 +14,12 @@ import com.hisaab.diary.domain.model.EntryType
 import com.hisaab.diary.domain.usecase.ObserveBookTotalsUseCase
 import com.hisaab.diary.domain.usecase.ObservePartiesUseCase
 import com.hisaab.diary.domain.usecase.ObserveSelectedBookUseCase
+import com.hisaab.diary.domain.usecase.PartyFilter
+import com.hisaab.diary.domain.usecase.PartySort
 import com.hisaab.diary.util.MainDispatcherRule
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -27,6 +31,7 @@ class HomeViewModelTest {
     private val store = FakeStore()
     private val books = FakeBookRepository(store)
     private val parties = FakePartyRepository(store)
+    private val entries = FakeEntryRepository(store)
     private val settings = FakeSettingsRepository()
 
     private fun viewModel() = HomeViewModel(
@@ -41,10 +46,10 @@ class HomeViewModelTest {
             assertTrue(awaitItem().isLoading)
             val id = books.addBook("Personal")
             settings.setSelectedBook(id)
-            val loaded = awaitItem()
+            val loaded = awaitUntil { !it.isLoading }
             assertEquals("Personal", loaded.bookName)
             assertEquals(BookTotals(Money.ZERO, Money.ZERO), loaded.totals)
-            assertTrue(loaded.parties.isEmpty())
+            assertFalse(loaded.hasAnyParty)
         }
     }
 
@@ -56,23 +61,77 @@ class HomeViewModelTest {
         val ali = parties.addParty(personal, "Ali", null, null)
 
         viewModel().uiState.test {
-            val first = expectMostRecentItem()
-            assertEquals(listOf("Ali"), first.parties.map { it.party.name })
+            assertEquals(listOf("Ali"), awaitUntil { it.parties.isNotEmpty() }.parties.map { it.party.name })
 
-            FakeEntryRepository(store).addEntry(Entry(0, ali, EntryType.GAVE, Money(5_000), null, 0, null, null, 0, 0))
-            // Totals and parties are separate flows, so wait until both have updated.
-            var updated = awaitItem()
-            while (updated.parties.single().balance != Money(-5_000) || updated.totals!!.willGet != Money(5_000)) {
-                updated = awaitItem()
+            entries.addEntry(entry(ali, EntryType.GAVE, 5_000))
+            val updated = awaitUntil {
+                it.totals?.willGet == Money(5_000) &&
+                    it.parties.single().balance == Money(-5_000)
             }
-            assertEquals(Money(5_000), updated.totals!!.willGet)
-            assertEquals(Money(-5_000), updated.parties.single().balance)
+            assertTrue(updated.hasAnyParty)
 
             settings.setSelectedBook(shop)
-            var shopState = awaitItem()
-            while (shopState.bookName != "Shop") shopState = awaitItem()
-            assertEquals("Shop", shopState.bookName)
+            val shopState = awaitUntil { it.bookName == "Shop" }
             assertTrue(shopState.parties.isEmpty())
         }
     }
+
+    @Test
+    fun `search filter and sort`() = runTest {
+        val book = books.addBook("Personal")
+        settings.setSelectedBook(book)
+        val ali = parties.addParty(book, "Ali", null, null)
+        val zara = parties.addParty(book, "Zara", null, null)
+        parties.addParty(book, "Bilal", null, null)
+        entries.addEntry(entry(ali, EntryType.GAVE, 100))
+        entries.addEntry(entry(zara, EntryType.GAVE, 900))
+        val vm = viewModel()
+
+        vm.uiState.test {
+            awaitUntil { it.parties.size == 3 }
+
+            vm.onEvent(HomeEvent.QueryChanged("za"))
+            assertEquals(listOf("Zara"), awaitUntil { it.query == "za" && it.parties.size == 1 }.names())
+
+            vm.onEvent(HomeEvent.QueryChanged(""))
+            vm.onEvent(HomeEvent.FilterChanged(PartyFilter.WILL_GET))
+            vm.onEvent(HomeEvent.SortChanged(PartySort.HIGHEST_AMOUNT))
+            val result = awaitUntil {
+                it.filter == PartyFilter.WILL_GET && it.sort == PartySort.HIGHEST_AMOUNT &&
+                    it.query.isEmpty()
+            }
+            assertEquals(listOf("Zara", "Ali"), result.names())
+
+            vm.onEvent(HomeEvent.FilterChanged(PartyFilter.SETTLED))
+            val settled = awaitUntil { it.filter == PartyFilter.SETTLED }
+            assertEquals(listOf("Bilal"), settled.names())
+            assertTrue(settled.hasAnyParty)
+        }
+    }
+
+    @Test
+    fun `no match keeps hasAnyParty true`() = runTest {
+        val book = books.addBook("Personal")
+        settings.setSelectedBook(book)
+        parties.addParty(book, "Ali", null, null)
+        val vm = viewModel()
+        vm.uiState.test {
+            awaitUntil { it.parties.isNotEmpty() }
+            vm.onEvent(HomeEvent.QueryChanged("nobody"))
+            val state = awaitUntil { it.query == "nobody" }
+            assertTrue(state.parties.isEmpty())
+            assertTrue(state.hasAnyParty)
+        }
+    }
+
+    private suspend fun ReceiveTurbine<HomeUiState>.awaitUntil(check: (HomeUiState) -> Boolean): HomeUiState {
+        var item = awaitItem()
+        while (!check(item)) item = awaitItem()
+        return item
+    }
+
+    private fun HomeUiState.names() = parties.map { it.party.name }
+
+    private fun entry(partyId: Long, type: EntryType, paisa: Long) =
+        Entry(0, partyId, type, Money(paisa), null, 0, null, null, 0, 0)
 }

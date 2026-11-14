@@ -7,6 +7,9 @@ naming:
     constantPattern: '[A-Z][A-Za-z0-9_]*'
 
 complexity:
+  LongMethod:
+    # Compose UI functions are long by nature (layout code). Logic lives in ViewModels.
+    ignoreAnnotated: [ 'Composable' ]
   LongParameterList:
     # Composables often take many parameters (modifier, state, callbacks).
     ignoreAnnotated: [ 'Composable' ]
