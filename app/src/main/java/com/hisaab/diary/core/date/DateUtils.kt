@@ -69,6 +69,30 @@ class DateUtils(
         add(Calendar.DAY_OF_MONTH, days)
     }.timeInMillis
 
+    /**
+     * The Material date picker works with UTC midnight of the chosen date.
+     * Returns the local start of that same calendar date.
+     */
+    fun fromPickerMillis(utcMillis: Long): Long {
+        val utc = Calendar.getInstance(UTC).apply { timeInMillis = utcMillis }
+        return Calendar.getInstance(timeZone).apply {
+            clear()
+            set(utc.get(Calendar.YEAR), utc.get(Calendar.MONTH), utc.get(Calendar.DAY_OF_MONTH))
+        }.timeInMillis
+    }
+
+    /** Opposite of [fromPickerMillis]: UTC midnight of the local date of [millis]. */
+    fun toPickerMillis(millis: Long): Long {
+        val local = calendar(millis)
+        return Calendar.getInstance(UTC).apply {
+            clear()
+            set(local.get(Calendar.YEAR), local.get(Calendar.MONTH), local.get(Calendar.DAY_OF_MONTH))
+        }.timeInMillis
+    }
+
+    /** [dayStart] with the time of day of now, so new entries on a past day keep a natural order. */
+    fun atCurrentTime(dayStart: Long): Long = startOfDay(dayStart) + (now() - startOfToday())
+
     private fun calendar(millis: Long): Calendar = Calendar.getInstance(timeZone).apply {
         this.firstDayOfWeek = this@DateUtils.firstDayOfWeek
         timeInMillis = millis
@@ -88,5 +112,6 @@ class DateUtils(
     private companion object {
         const val DAYS_IN_WEEK = 7
         const val MILLIS_PER_DAY = 24L * 60 * 60 * 1000
+        val UTC: TimeZone = TimeZone.getTimeZone("UTC")
     }
 }

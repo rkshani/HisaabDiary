@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.hisaab.diary.ui.feature.entry.AddEntryScreen
+import com.hisaab.diary.ui.feature.entry.AddEntryDestination
 import com.hisaab.diary.ui.feature.home.HomeRoute
 import com.hisaab.diary.ui.feature.party.PartyDetailDestination
 import com.hisaab.diary.ui.feature.reports.ReportsScreen
@@ -33,7 +33,7 @@ fun HisaabNavHost(navController: NavHostController, modifier: Modifier = Modifie
             )
         }
         composable<AddEntryRoute> {
-            AddEntryScreen(onBack = navController::popBackStack)
+            AddEntryDestination(onBack = navController::popBackStack)
         }
     }
 }
