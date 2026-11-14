@@ -167,6 +167,21 @@
     <string name="csv_note">Note</string>
     <string name="csv_due_date">Due date</string>
 
+    <!-- Books -->
+    <string name="books_title">Books</string>
+    <string name="action_switch_book">Switch book</string>
+    <string name="action_add_book">Add book</string>
+    <string name="add_book_title">New book</string>
+    <string name="rename_book_title">Rename book</string>
+    <string name="field_book_name">Book name (e.g. Shop, Ghar)</string>
+    <string name="action_rename_book">Rename %1$s</string>
+    <string name="action_delete_book">Delete %1$s</string>
+    <string name="delete_book_title">Delete %1$s?</string>
+    <string name="delete_book_body">All people and entries in this book will be deleted. This cannot be undone.</string>
+    <string name="error_last_book">You need at least one book, so this one cannot be deleted.</string>
+    <string name="error_book_name_empty">Please enter a name.</string>
+    <string name="error_book_name_long">Name is too long (max 40 letters).</string>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>
