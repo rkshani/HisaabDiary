@@ -74,6 +74,11 @@ fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewMo
     val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(viewModel) {
+        viewModel.seeded.collect { count ->
+            snackbarHostState.showSnackbar(resources.getQuantityString(R.plurals.debug_seeded_plural, count, count))
+        }
+    }
+    LaunchedEffect(viewModel) {
         viewModel.messages.collect { message ->
             val text = when (message) {
                 SettingsMessage.BACKUP_DONE -> resources.getString(R.string.backup_done)
@@ -123,6 +128,7 @@ fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewMo
             onDynamicColorChange = viewModel::setDynamicColor,
             onCurrencyChange = viewModel::setCurrencySymbol,
             onRateApp = { openPlayStore(context) },
+            onSeedTestData = viewModel::seedTestEntries,
         ),
         modifier = modifier,
     )
@@ -143,6 +149,7 @@ class SettingsActions(
     val onDynamicColorChange: (Boolean) -> Unit,
     val onCurrencyChange: (CurrencySymbol) -> Unit,
     val onRateApp: () -> Unit,
+    val onSeedTestData: () -> Unit,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -249,6 +256,15 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.settings_rate_desc),
                 onClick = actions.onRateApp,
             )
+            if (BuildConfig.DEBUG) {
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                SectionTitle(stringResource(R.string.settings_debug))
+                ClickRow(
+                    title = stringResource(R.string.debug_seed),
+                    subtitle = stringResource(R.string.debug_seed_desc),
+                    onClick = actions.onSeedTestData,
+                )
+            }
         }
     }
 

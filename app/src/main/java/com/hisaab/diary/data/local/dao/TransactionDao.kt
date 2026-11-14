@@ -45,6 +45,10 @@ interface TransactionDao {
     @Insert
     suspend fun insert(entry: TransactionEntity): Long
 
+    /** Many entries in one transaction (used by the debug test-data button). */
+    @Insert
+    suspend fun insertAll(entries: List<TransactionEntity>)
+
     @Update
     suspend fun update(entry: TransactionEntity)
 

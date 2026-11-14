@@ -11,6 +11,7 @@ import com.hisaab.diary.domain.model.ThemeMode
 import com.hisaab.diary.domain.repository.SettingsRepository
 import com.hisaab.diary.domain.usecase.DisableAppLockUseCase
 import com.hisaab.diary.domain.usecase.ObserveSettingsUseCase
+import com.hisaab.diary.domain.usecase.SeedTestDataUseCase
 import com.hisaab.diary.domain.usecase.SetPinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -48,7 +49,17 @@ class SettingsViewModel @Inject constructor(
     private val disableAppLock: DisableAppLockUseCase,
     private val settingsRepository: SettingsRepository,
     private val backup: BackupService,
+    private val seedTestData: SeedTestDataUseCase,
 ) : ViewModel() {
+    /** Debug builds only: adds 10,000 test entries in a new "Test data" book. */
+    fun seedTestEntries() = launch {
+        val count = seedTestData()
+        _seeded.send(count)
+    }
+
+    private val _seeded = Channel<Int>(Channel.BUFFERED)
+    val seeded: Flow<Int> = _seeded.receiveAsFlow()
+
     private val _messages = Channel<SettingsMessage>(Channel.BUFFERED)
     val messages: Flow<SettingsMessage> = _messages.receiveAsFlow()
 

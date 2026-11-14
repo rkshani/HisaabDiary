@@ -65,6 +65,9 @@ interface EntryRepository {
     /** Entries with names for export; all books when [bookId] is null. Oldest first. */
     suspend fun getForExport(bookId: Long?): List<ExportRow>
 
+    /** Saves many new entries at once ([Entry.id] is ignored). */
+    suspend fun addEntries(entries: List<Entry>)
+
     /** Puts back a deleted entry with its old id (for Undo). */
     suspend fun restoreEntry(entry: Entry)
 }

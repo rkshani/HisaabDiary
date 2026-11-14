@@ -277,6 +277,15 @@
     <string name="intro_next">Next</string>
     <string name="intro_start">Start</string>
 
+    <!-- Debug (debug builds only) -->
+    <string name="settings_debug">Debug</string>
+    <string name="debug_seed">Add 10,000 test entries</string>
+    <string name="debug_seed_desc">Makes a \"Test data\" book with 100 people to check speed.</string>
+    <plurals name="debug_seeded_plural">
+        <item quantity="one">Added %d test entry.</item>
+        <item quantity="other">Added %d test entries.</item>
+    </plurals>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>

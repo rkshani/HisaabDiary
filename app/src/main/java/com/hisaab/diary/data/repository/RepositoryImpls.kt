@@ -107,6 +107,10 @@ class EntryRepositoryImpl @Inject constructor(
         dao.getById(id)?.let { dao.delete(it) } ?: Unit
     }
 
+    override suspend fun addEntries(entries: List<Entry>) = withContext(io) {
+        dao.insertAll(entries.map { it.copy(id = 0).toEntity() })
+    }
+
     override suspend fun getForExport(bookId: Long?): List<ExportRow> = withContext(io) {
         dao.getForExport(bookId).map {
             ExportRow(it.entry.toDomain(), bookName = it.bookName, partyName = it.partyName, partyPhone = it.partyPhone)
