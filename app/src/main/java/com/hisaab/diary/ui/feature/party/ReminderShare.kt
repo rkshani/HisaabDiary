@@ -12,13 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
 import com.hisaab.diary.R
 import com.hisaab.diary.core.phone.PhoneNumbers
 import com.hisaab.diary.domain.model.PartySummary
 import com.hisaab.diary.ui.components.formatMoney
-
-/** How the reminder is sent. Only intents: the app itself never uses the internet. */
-enum class ReminderChannel { WHATSAPP, SMS, OTHER }
 
 /** The approved reminder text, e.g. "Assalam o Alaikum Ali, ... Rs 2,000 is pending ...". */
 fun reminderMessage(context: Context, name: String, amount: String): String =
@@ -32,7 +30,7 @@ fun reminderIntent(channel: ReminderChannel, message: String, phone: String?): I
     val international = phone?.let(PhoneNumbers::toInternational)
     return when {
         channel == ReminderChannel.WHATSAPP && international != null ->
-            Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$international?text=${Uri.encode(message)}"))
+            Intent(Intent.ACTION_VIEW, "https://wa.me/$international?text=${Uri.encode(message)}".toUri())
                 .setPackage(WHATSAPP_PACKAGE)
 
         channel == ReminderChannel.WHATSAPP ->
@@ -40,7 +38,7 @@ fun reminderIntent(channel: ReminderChannel, message: String, phone: String?): I
                 .setPackage(WHATSAPP_PACKAGE)
 
         channel == ReminderChannel.SMS && phone != null ->
-            Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:${PhoneNumbers.forSms(phone)}"))
+            Intent(Intent.ACTION_SENDTO, "smsto:${PhoneNumbers.forSms(phone)}".toUri())
                 .putExtra("sms_body", message)
 
         else -> Intent.createChooser(
