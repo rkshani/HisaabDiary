@@ -53,6 +53,8 @@ fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewMo
             onDisableLock = viewModel::disableLock,
             onBiometricChange = viewModel::setBiometric,
             onLockTimeoutChange = viewModel::setLockTimeout,
+            onHideAmountsChange = viewModel::setHideAmounts,
+            onBlockScreenshotsChange = viewModel::setBlockScreenshots,
         ),
         modifier = modifier,
     )
@@ -64,6 +66,8 @@ class SettingsActions(
     val onDisableLock: () -> Unit,
     val onBiometricChange: (Boolean) -> Unit,
     val onLockTimeoutChange: (Int) -> Unit,
+    val onHideAmountsChange: (Boolean) -> Unit,
+    val onBlockScreenshotsChange: (Boolean) -> Unit,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -108,6 +112,20 @@ fun SettingsScreen(
                     onClick = { pickTimeout = true },
                 )
             }
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            SectionTitle(stringResource(R.string.settings_privacy))
+            SwitchRow(
+                title = stringResource(R.string.settings_hide_amounts),
+                subtitle = stringResource(R.string.settings_hide_amounts_desc),
+                checked = settings.hideAmounts,
+                onCheckedChange = actions.onHideAmountsChange,
+            )
+            SwitchRow(
+                title = stringResource(R.string.settings_block_screenshots),
+                subtitle = stringResource(R.string.settings_block_screenshots_desc),
+                checked = settings.blockScreenshots,
+                onCheckedChange = actions.onBlockScreenshotsChange,
+            )
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
         }
     }

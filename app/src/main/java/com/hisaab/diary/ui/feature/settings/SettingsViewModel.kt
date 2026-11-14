@@ -33,6 +33,10 @@ class SettingsViewModel @Inject constructor(
 
     fun setLockTimeout(seconds: Int) = launch { settingsRepository.setLockTimeoutSeconds(seconds) }
 
+    fun setHideAmounts(hide: Boolean) = launch { settingsRepository.setHideAmounts(hide) }
+
+    fun setBlockScreenshots(block: Boolean) = launch { settingsRepository.setBlockScreenshots(block) }
+
     private fun launch(block: suspend () -> Unit) {
         viewModelScope.launch { block() }
     }

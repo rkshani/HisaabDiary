@@ -201,6 +201,13 @@
     <string name="lock_biometric_title">Unlock Hisaab Diary</string>
     <string name="lock_digits_entered">%1$d of %2$d digits entered</string>
 
+    <!-- Settings: privacy -->
+    <string name="settings_privacy">Privacy</string>
+    <string name="settings_hide_amounts">Hide amounts</string>
+    <string name="settings_hide_amounts_desc">Show **** instead of money, e.g. when others can see your screen.</string>
+    <string name="settings_block_screenshots">Block screenshots</string>
+    <string name="settings_block_screenshots_desc">Also hides the app in the recent apps screen.</string>
+
     <!-- Settle up -->
     <string name="action_settle_up">Settle up</string>
     <string name="settle_up_title">Settle up with %1$s?</string>
