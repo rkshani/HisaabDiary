@@ -5,10 +5,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
 import com.hisaab.diary.ui.feature.entry.AddEntryScreen
 import com.hisaab.diary.ui.feature.home.HomeRoute
-import com.hisaab.diary.ui.feature.party.PartyDetailScreen
+import com.hisaab.diary.ui.feature.party.PartyDetailDestination
 import com.hisaab.diary.ui.feature.reports.ReportsScreen
 import com.hisaab.diary.ui.feature.settings.SettingsScreen
 
@@ -26,12 +25,11 @@ fun HisaabNavHost(navController: NavHostController, modifier: Modifier = Modifie
         }
         composable<ReportsRoute> { ReportsScreen() }
         composable<SettingsRoute> { SettingsScreen() }
-        composable<PartyDetailRoute> { entry ->
-            val route = entry.toRoute<PartyDetailRoute>()
-            PartyDetailScreen(
-                partyId = route.partyId,
+        composable<PartyDetailRoute> {
+            PartyDetailDestination(
                 onBack = navController::popBackStack,
-                onAddEntry = { isGave -> navController.navigate(AddEntryRoute(route.partyId, isGave)) },
+                onAddEntry = { partyId, isGave -> navController.navigate(AddEntryRoute(partyId, isGave)) },
+                onOpenEntry = { partyId, entryId -> navController.navigate(AddEntryRoute(partyId, entryId = entryId)) },
             )
         }
         composable<AddEntryRoute> {

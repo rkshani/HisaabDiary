@@ -13,7 +13,6 @@
 
     <!-- Placeholders (removed when the features are built) -->
     <string name="coming_soon">Coming soon</string>
-    <string name="party_title">Party #%1$d</string>
     <string name="add_entry_title">New entry</string>
 
     <!-- Home summary -->
@@ -65,6 +64,15 @@
     <string name="action_unarchive">Unarchive</string>
     <string name="delete_party_title">Delete this person?</string>
     <string name="delete_party_body">All entries of %1$s will be deleted. This cannot be undone.</string>
+
+    <!-- Party khata (ledger) -->
+    <string name="action_edit_person">Edit person</string>
+    <string name="balance_will_get">You will get</string>
+    <string name="balance_will_give">You will give</string>
+    <string name="balance_settled">All settled</string>
+    <string name="ledger_column_entry">Entry</string>
+    <string name="ledger_balance_after">Bal. %1$s</string>
+    <string name="ledger_empty">No entries yet. Tap \"You gave\" or \"You got\" to add one.</string>
 
     <!-- Entry types -->
     <string name="action_you_gave">You gave</string>
