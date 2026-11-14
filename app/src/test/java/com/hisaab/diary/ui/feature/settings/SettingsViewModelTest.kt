@@ -13,6 +13,7 @@ import com.hisaab.diary.util.MainDispatcherRule
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -24,8 +25,20 @@ class SettingsViewModelTest {
     val main = MainDispatcherRule()
 
     private val repo = FakeSettingsRepository()
-    private val vm =
-        SettingsViewModel(ObserveSettingsUseCase(repo), SetPinUseCase(repo), DisableAppLockUseCase(repo), repo)
+    private var backupPassword: String? = "unset"
+    private val backup = object : BackupService {
+        override suspend fun create(target: Uri, password: String?): Boolean {
+            backupPassword = password
+            return true
+        }
+    }
+    private val vm = SettingsViewModel(
+        ObserveSettingsUseCase(repo),
+        SetPinUseCase(repo),
+        DisableAppLockUseCase(repo),
+        repo,
+        backup,
+    )
 
     @Test
     fun enableVerifyAndDisableLock() = runTest {
@@ -64,7 +77,7 @@ class SettingsViewModelTest {
         assertEquals("pw", backupPassword)
         vm.startBackup("")
         vm.createBackup(Uri.EMPTY)
-        assertEquals(null, backupPassword)
+        assertNull(backupPassword)
     }
 
     @Test
