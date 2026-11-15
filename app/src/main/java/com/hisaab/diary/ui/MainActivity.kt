@@ -1,7 +1,9 @@
 package com.hisaab.diary.ui
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.WindowManager
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -19,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hisaab.diary.BuildConfig
 import com.hisaab.diary.R
 import com.hisaab.diary.core.money.MoneyFormatter
 import com.hisaab.diary.domain.model.ThemeMode
@@ -40,11 +43,16 @@ class MainActivity : FragmentActivity() {
             val settings by viewModel.settings.collectAsStateWithLifecycle()
             val lockState by viewModel.lockState.collectAsStateWithLifecycle()
             val wrongPin by viewModel.wrongPin.collectAsStateWithLifecycle()
-            val darkTheme = when (settings.themeMode) {
-                ThemeMode.SYSTEM -> isSystemInDarkTheme()
-                ThemeMode.LIGHT -> false
-                ThemeMode.DARK -> true
-            }
+            val systemDark = isSystemInDarkTheme()
+            val darkTheme = BuildConfig.FEATURE_THEME_CHOICE &&
+                when (settings.themeMode) {
+                    ThemeMode.SYSTEM -> systemDark
+                    ThemeMode.LIGHT -> false
+                    ThemeMode.DARK -> true
+                }
+            val dynamicColor = BuildConfig.FEATURE_THEME_CHOICE && settings.dynamicColor
+            val showOnboarding = BuildConfig.FEATURE_ONBOARDING && !settings.onboardingDone
+            LaunchedEffect(darkTheme) { applySystemBars(darkTheme) }
             val moneyFormatter = remember(settings.currencySymbol, settings.hideAmounts) {
                 MoneyFormatter(settings.currencySymbol, hidden = settings.hideAmounts)
             }
@@ -53,7 +61,7 @@ class MainActivity : FragmentActivity() {
                 if (lockState == LockState.LOCKED && canUseBiometric) showBiometricPrompt()
             }
             LaunchedEffect(settings.blockScreenshots) { applySecureFlag(settings.blockScreenshots) }
-            HisaabTheme(darkTheme = darkTheme, dynamicColor = settings.dynamicColor) {
+            HisaabTheme(darkTheme = darkTheme, dynamicColor = dynamicColor) {
                 CompositionLocalProvider(LocalMoneyFormatter provides moneyFormatter) {
                     when (lockState) {
                         LockState.LOADING -> Surface(Modifier.fillMaxSize()) {}
@@ -66,10 +74,10 @@ class MainActivity : FragmentActivity() {
                             onBiometricClick = ::showBiometricPrompt,
                         )
 
-                        LockState.UNLOCKED -> if (settings.onboardingDone) {
-                            HisaabRoot()
-                        } else {
+                        LockState.UNLOCKED -> if (showOnboarding) {
                             OnboardingScreen(onFinish = viewModel::finishOnboarding)
+                        } else {
+                            HisaabRoot()
                         }
                     }
                 }
@@ -107,6 +115,16 @@ class MainActivity : FragmentActivity() {
             .setAllowedAuthenticators(BIOMETRIC_WEAK)
             .build()
         prompt.authenticate(info)
+    }
+
+    /** Status/navigation bar icons follow the app theme, not the phone's dark mode. */
+    private fun applySystemBars(darkTheme: Boolean) {
+        val style = if (darkTheme) {
+            SystemBarStyle.dark(Color.TRANSPARENT)
+        } else {
+            SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+        }
+        enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
     }
 
     /** FLAG_SECURE blocks screenshots and hides the app in the recent-apps screen. */

@@ -27,7 +27,9 @@ class HisaabApp : Application() {
         super.onCreate()
         // First launch: create the "Personal" book and select it.
         appScope.launch { ensureDefaultBook(getString(R.string.default_book_name)) }
-        ReminderNotifications.createChannel(this)
-        DueReminderWorker.schedule(this, dateUtils)
+        if (BuildConfig.FEATURE_REMINDERS) {
+            ReminderNotifications.createChannel(this)
+            DueReminderWorker.schedule(this, dateUtils)
+        }
     }
 }

@@ -21,6 +21,15 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Features hidden in v1; they come back in a later version. Set to "true" to turn one on again.
+        // Intro pages on first launch.
+        buildConfigField("boolean", "FEATURE_ONBOARDING", "false")
+        // Due-date notifications, reminder list, WhatsApp/SMS reminder, backup reminder notification.
+        // Also put back POST_NOTIFICATIONS in AndroidManifest.xml.
+        buildConfigField("boolean", "FEATURE_REMINDERS", "false")
+        // Dark mode, theme picker and wallpaper (dynamic) colors. Off = light teal theme only.
+        buildConfigField("boolean", "FEATURE_THEME_CHOICE", "false")
     }
 
     buildTypes {

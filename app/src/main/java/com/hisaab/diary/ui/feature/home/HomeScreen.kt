@@ -31,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hisaab.diary.BuildConfig
 import com.hisaab.diary.R
 import com.hisaab.diary.core.money.Money
 import com.hisaab.diary.domain.model.BookTotals
@@ -103,8 +104,10 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onOpenReminders) {
-                        Icon(painterResource(R.drawable.ic_notification), stringResource(R.string.reminders_title))
+                    if (BuildConfig.FEATURE_REMINDERS) {
+                        IconButton(onClick = onOpenReminders) {
+                            Icon(painterResource(R.drawable.ic_notification), stringResource(R.string.reminders_title))
+                        }
                     }
                 },
             )

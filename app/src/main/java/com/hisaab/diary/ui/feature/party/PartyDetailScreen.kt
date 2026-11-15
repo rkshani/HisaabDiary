@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hisaab.diary.BuildConfig
 import com.hisaab.diary.R
 import com.hisaab.diary.core.date.DateFormatter
 import com.hisaab.diary.data.export.ShareFiles
@@ -206,7 +207,7 @@ fun PartyDetailScreen(
         val formatter = remember { DateFormatter() }
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {
             item(key = "balance") { PartyBalanceCard(summary, Modifier.padding(16.dp)) }
-            if (summary.status == BalanceStatus.WILL_GET) {
+            if (BuildConfig.FEATURE_REMINDERS && summary.status == BalanceStatus.WILL_GET) {
                 item(key = "reminder") {
                     FilledTonalButton(
                         onClick = onSendReminder,

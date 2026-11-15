@@ -3,8 +3,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Local due-date reminders (Android 13+ asks the user; asked only when a due date is set). -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Local due-date reminders (Android 13+ asks the user; asked only when a due date is set).
+         Hidden in v1 (BuildConfig.FEATURE_REMINDERS = false). Put this back when reminders return. -->
+    <!-- <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> -->
+    <!-- WorkManager (only used for reminders) adds these; not needed while reminders are hidden. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="remove" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
 
     <application
         android:name=".HisaabApp"

@@ -235,11 +235,13 @@ fun SettingsScreen(
                 subtitle = stringResource(R.string.restore_backup_desc),
                 onClick = actions.onRestoreBackup,
             )
-            ClickRow(
-                title = stringResource(R.string.backup_reminder),
-                subtitle = backupDaysLabel(settings.backupReminderDays),
-                onClick = { pickBackupDays = true },
-            )
+            if (BuildConfig.FEATURE_REMINDERS) {
+                ClickRow(
+                    title = stringResource(R.string.backup_reminder),
+                    subtitle = backupDaysLabel(settings.backupReminderDays),
+                    onClick = { pickBackupDays = true },
+                )
+            }
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
             SectionTitle(stringResource(R.string.settings_about))
             ClickRow(
@@ -656,12 +658,14 @@ private fun AppearanceSection(
 ) {
     Column(modifier) {
         SectionTitle(stringResource(R.string.settings_appearance))
-        ClickRow(
-            title = stringResource(R.string.settings_theme),
-            subtitle = stringResource(themeLabel(settings.themeMode)),
-            onClick = onPickTheme,
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (BuildConfig.FEATURE_THEME_CHOICE) {
+            ClickRow(
+                title = stringResource(R.string.settings_theme),
+                subtitle = stringResource(themeLabel(settings.themeMode)),
+                onClick = onPickTheme,
+            )
+        }
+        if (BuildConfig.FEATURE_THEME_CHOICE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             SwitchRow(
                 title = stringResource(R.string.settings_dynamic_color),
                 subtitle = stringResource(R.string.settings_dynamic_color_desc),

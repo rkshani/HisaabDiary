@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.hisaab.diary.BuildConfig
 import com.hisaab.diary.R
 import com.hisaab.diary.core.date.DateFormatter
 import com.hisaab.diary.domain.model.EntryType
@@ -96,7 +97,9 @@ fun AddEntryDestination(
     // Ask for notifications only when the user first sets a due date (Android 13+).
     val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     val context = LocalContext.current
+    // Hidden in v1: no notifications, so no permission request (BuildConfig.FEATURE_REMINDERS).
     LaunchedEffect(state.dueDate != null) {
+        if (!BuildConfig.FEATURE_REMINDERS) return@LaunchedEffect
         if (state.dueDate != null &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
