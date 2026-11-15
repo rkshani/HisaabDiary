@@ -131,18 +131,20 @@ class BackupManager @Inject constructor(
     private fun unpack(source: Uri, password: String?, work: File): RestoreResult {
         val input = context.contentResolver.openInputStream(source) ?: return RestoreResult.FAILED
         input.use { raw ->
-            ZipInputStream(BackupCrypto.decryptingStream(raw, password)).use { zip ->
-                generateSequence { zip.nextEntry }.forEach { entry ->
-                    val target = safeTarget(work, entry.name)
-                    if (target != null && !entry.isDirectory) {
-                        target.parentFile?.mkdirs()
-                        target.outputStream().use { zip.copyTo(it) }
-                    }
-                }
-            }
+            ZipInputStream(BackupCrypto.decryptingStream(raw, password)).use { zip -> zip.extractTo(work) }
         }
         val complete = File(work, META_ENTRY).exists() && File(work, DB_ENTRY).exists()
         return if (complete) RestoreResult.OK else RestoreResult.NOT_A_BACKUP
+    }
+
+    private fun ZipInputStream.extractTo(work: File) {
+        generateSequence { nextEntry }.forEach { entry ->
+            val target = safeTarget(work, entry.name)
+            if (target != null && !entry.isDirectory) {
+                target.parentFile?.mkdirs()
+                target.outputStream().use { copyTo(it) }
+            }
+        }
     }
 
     private fun safeTarget(work: File, name: String): File? {

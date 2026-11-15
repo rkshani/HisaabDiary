@@ -135,6 +135,7 @@ fun SettingsDestination(modifier: Modifier = Modifier, viewModel: SettingsViewMo
 }
 
 /** All callbacks of the settings screen, grouped to keep the parameter list short. */
+@Suppress("LongParameterList") // A plain holder of callbacks; splitting it would not help.
 class SettingsActions(
     val onEnableLock: (pin: String) -> Unit,
     val onDisableLock: () -> Unit,

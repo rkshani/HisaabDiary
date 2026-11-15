@@ -25,7 +25,8 @@ import org.robolectric.annotation.Config
 /** Main flow: add a person, add "You gave Rs 500", see the balance on the khata and Home. */
 @HiltAndroidTest
 @RunWith(RobolectricTestRunner::class)
-@Config(application = HiltTestApplication::class)
+// A normal phone size; the Robolectric default (320x470dp) hides the empty-state button behind the bottom bar.
+@Config(application = HiltTestApplication::class, qualifiers = "w411dp-h891dp")
 class MainFlowTest {
     @get:Rule(order = 0)
     val hilt = HiltAndroidRule(this)
@@ -50,6 +51,7 @@ class MainFlowTest {
     @Test
     fun addPersonThenEntryShowsBalance() {
         compose.onNodeWithText("Add first person").performClick()
+        waitForText("Name *")
         compose.onNodeWithText("Name *").performTextInput("Ali Raza")
         compose.onNodeWithText("Save").performClick()
 
