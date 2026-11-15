@@ -2,6 +2,9 @@ package com.hisaab.diary.ui.navigation
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -10,6 +13,7 @@ import androidx.compose.ui.test.performClick
 import com.hisaab.diary.domain.repository.BookRepository
 import com.hisaab.diary.domain.repository.PartyRepository
 import com.hisaab.diary.domain.repository.SettingsRepository
+import com.hisaab.diary.ui.BOTTOM_BAR_TAG
 import com.hisaab.diary.ui.MainActivity
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -26,7 +30,8 @@ import org.robolectric.annotation.Config
 
 @HiltAndroidTest
 @RunWith(RobolectricTestRunner::class)
-@Config(application = HiltTestApplication::class)
+// A normal phone size; the Robolectric default (320x470dp) is too small for Home.
+@Config(application = HiltTestApplication::class, qualifiers = "w411dp-h891dp")
 class NavigationTest {
     @get:Rule(order = 0)
     val hilt = HiltAndroidRule(this)
@@ -56,7 +61,7 @@ class NavigationTest {
 
     @Test
     fun startsOnHomeWithBookAndParty() {
-        compose.onNodeWithText("Home").assertIsSelected()
+        compose.onNode(hasText("Home") and hasAnyAncestor(hasTestTag(BOTTOM_BAR_TAG))).assertIsSelected()
         compose.onNodeWithText("Personal").assertIsDisplayed()
         compose.onNodeWithText("Ali Raza").assertIsDisplayed()
     }

@@ -1,19 +1,18 @@
 package com.hisaab.diary.ui.feature.home
 
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,17 +24,70 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import com.hisaab.diary.R
 import com.hisaab.diary.domain.usecase.PartyFilter
 import com.hisaab.diary.domain.usecase.PartySort
+import com.hisaab.diary.ui.theme.HisaabTheme
+
+/** Home tabs, in order. "You will get" (lena) and "You will give" (dena) are kept apart. */
+val HomeTabs = listOf(PartyFilter.ALL, PartyFilter.WILL_GET, PartyFilter.WILL_GIVE)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeTabRow(selected: PartyFilter, onSelect: (PartyFilter) -> Unit, modifier: Modifier = Modifier) {
+    PrimaryTabRow(
+        selectedTabIndex = HomeTabs.indexOf(selected).coerceAtLeast(0),
+        modifier = modifier,
+    ) {
+        HomeTabs.forEach { tab ->
+            val isSelected = tab == selected
+            Tab(
+                selected = isSelected,
+                onClick = { onSelect(tab) },
+                text = {
+                    Text(
+                        text = stringResource(tab.label),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                },
+                selectedContentColor = tab.color(),
+                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
 
 @Composable
-fun PartySearchField(query: String, onQueryChange: (String) -> Unit, modifier: Modifier = Modifier) {
+private fun PartyFilter.color() = when (this) {
+    PartyFilter.WILL_GET -> HisaabTheme.colors.willGet
+    PartyFilter.WILL_GIVE -> HisaabTheme.colors.willGive
+    else -> MaterialTheme.colorScheme.primary
+}
+
+/** Search box with the sort menu button next to it. */
+@Composable
+fun PartySearchRow(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    sort: PartySort,
+    onSortChange: (PartySort) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        PartySearchField(query = query, onQueryChange = onQueryChange, modifier = Modifier.weight(1f))
+        SortMenu(sort = sort, onSortChange = onSortChange)
+    }
+}
+
+@Composable
+private fun PartySearchField(query: String, onQueryChange: (String) -> Unit, modifier: Modifier = Modifier) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
         placeholder = { Text(stringResource(R.string.search_parties)) },
         leadingIcon = { Icon(painterResource(R.drawable.ic_search), contentDescription = null) },
         trailingIcon = {
@@ -46,40 +98,9 @@ fun PartySearchField(query: String, onQueryChange: (String) -> Unit, modifier: M
             }
         },
         singleLine = true,
+        shape = MaterialTheme.shapes.extraLarge,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
     )
-}
-
-/** Filter chips plus a sort menu button. */
-@Composable
-fun PartyFilterBar(
-    filter: PartyFilter,
-    sort: PartySort,
-    onFilterChange: (PartyFilter) -> Unit,
-    onSortChange: (PartySort) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .horizontalScroll(rememberScrollState())
-                .padding(start = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            PartyFilter.entries.forEach { option ->
-                FilterChip(
-                    selected = option == filter,
-                    onClick = { onFilterChange(option) },
-                    label = { Text(stringResource(option.label)) },
-                )
-            }
-        }
-        SortMenu(sort = sort, onSortChange = onSortChange)
-    }
 }
 
 @Composable

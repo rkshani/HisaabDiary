@@ -13,7 +13,7 @@ import com.hisaab.diary.ui.feature.reports.ReportsDestination
 import com.hisaab.diary.ui.feature.settings.SettingsDestination
 
 @Composable
-fun HisaabNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+fun HisaabNavHost(navController: NavHostController, onOpenDrawer: () -> Unit, modifier: Modifier = Modifier) {
     NavHost(
         navController = navController,
         startDestination = HomeRoute,
@@ -23,6 +23,7 @@ fun HisaabNavHost(navController: NavHostController, modifier: Modifier = Modifie
             HomeRoute(
                 onOpenParty = { partyId -> navController.navigate(PartyDetailRoute(partyId)) },
                 onOpenReminders = { navController.navigate(RemindersRoute) },
+                onOpenDrawer = onOpenDrawer,
             )
         }
         composable<RemindersRoute> {

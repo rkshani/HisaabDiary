@@ -2,6 +2,7 @@ package com.hisaab.diary.ui.feature.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.hisaab.diary.domain.model.BalanceStatus
 import com.hisaab.diary.domain.model.BookTotals
 import com.hisaab.diary.domain.model.PartySummary
 import com.hisaab.diary.domain.usecase.ObserveBookTotalsUseCase
@@ -32,6 +33,9 @@ data class HomeUiState(
     val filter: PartyFilter = PartyFilter.ALL,
     /** True when the book has parties at all (so an empty list means "no match", not "no parties"). */
     val hasAnyParty: Boolean = false,
+    /** How many people are on the "You will get" (lena) and "You will give" (dena) tabs. */
+    val willGetCount: Int = 0,
+    val willGiveCount: Int = 0,
 )
 
 sealed interface HomeEvent {
@@ -74,6 +78,8 @@ class HomeViewModel @Inject constructor(
                     sort = opts.sort,
                     filter = opts.filter,
                     hasAnyParty = all.isNotEmpty(),
+                    willGetCount = all.count { it.status == BalanceStatus.WILL_GET },
+                    willGiveCount = all.count { it.status == BalanceStatus.WILL_GIVE },
                 )
             }
         }

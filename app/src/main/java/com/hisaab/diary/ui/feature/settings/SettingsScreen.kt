@@ -50,7 +50,6 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hisaab.diary.BuildConfig
@@ -64,6 +63,9 @@ import com.hisaab.diary.data.backup.BackupManager
 import com.hisaab.diary.domain.model.AppSettings
 import com.hisaab.diary.domain.model.ThemeMode
 import com.hisaab.diary.ui.MainActivity
+import com.hisaab.diary.ui.components.PRIVACY_POLICY_URL
+import com.hisaab.diary.ui.components.openPlayStore
+import com.hisaab.diary.ui.components.openWebPage
 import com.hisaab.diary.ui.feature.entry.Keypad
 import com.hisaab.diary.ui.feature.lock.PinDots
 
@@ -304,6 +306,12 @@ fun SettingsScreen(
             text = { Text(stringResource(R.string.privacy_policy_text)) },
             confirmButton = {
                 TextButton(onClick = { showPrivacy = false }) { Text(stringResource(R.string.action_ok)) }
+            },
+            dismissButton = {
+                val context = LocalContext.current
+                TextButton(onClick = { openWebPage(context, PRIVACY_POLICY_URL) }) {
+                    Text(stringResource(R.string.privacy_policy_read_full))
+                }
             },
         )
     }
@@ -688,13 +696,3 @@ private fun themeLabel(mode: ThemeMode): Int = when (mode) {
 }
 
 private val SAMPLE_AMOUNT = Money(125_050)
-
-/** Opens the Play Store page (the user's choice; the app itself never goes online). */
-private fun openPlayStore(context: Context) {
-    val market = Intent(Intent.ACTION_VIEW, "market://details?id=${context.packageName}".toUri())
-    val web = Intent(
-        Intent.ACTION_VIEW,
-        "https://play.google.com/store/apps/details?id=${context.packageName}".toUri(),
-    )
-    runCatching { context.startActivity(market) }.recoverCatching { context.startActivity(web) }
-}

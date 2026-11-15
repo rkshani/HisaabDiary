@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -71,6 +72,41 @@ fun SummaryCard(totals: BookTotals, modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.titleMedium.amount(),
                 // Net > 0 means others owe you overall (same as "will get").
                 color = balanceColor(-totals.net),
+            )
+        }
+    }
+}
+
+/** Top card on the "You will get" / "You will give" tabs: that side's total and how many people. */
+@Composable
+fun TabTotalCard(label: String, amount: Money, color: Color, people: Int, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .semantics(mergeDescendants = true) {},
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = pluralStringResource(R.plurals.home_people_count, people, people),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                text = formatMoney(amount),
+                style = MaterialTheme.typography.headlineSmall.amount(),
+                color = color,
             )
         }
     }

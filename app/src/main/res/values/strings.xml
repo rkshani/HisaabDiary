@@ -20,6 +20,25 @@
     <string name="summary_net_give">Net: you will give</string>
     <string name="summary_net_settled">Net: all settled</string>
 
+    <!-- Home tabs: "lena" (you will get) and "dena" (you will give) are kept apart -->
+    <string name="home_total_will_get">Total you will get</string>
+    <string name="home_total_will_give">Total you will give</string>
+    <plurals name="home_people_count">
+        <item quantity="one">%d person</item>
+        <item quantity="other">%d people</item>
+    </plurals>
+    <string name="home_empty_will_get">No one owes you money right now.</string>
+    <string name="home_empty_will_give">You do not owe anyone right now.</string>
+
+    <!-- Side drawer -->
+    <string name="drawer_open">Open menu</string>
+    <string name="drawer_tagline">Your offline lena-dena khata</string>
+    <string name="drawer_home">Home</string>
+    <string name="drawer_rate">Rate us</string>
+    <string name="drawer_privacy">Privacy policy</string>
+    <string name="drawer_exit">Exit</string>
+    <string name="link_open_failed">No app found to open this link.</string>
+
     <!-- Party list -->
     <string name="party_no_entries">No entries yet</string>
     <string name="status_will_get">You will get</string>
@@ -264,7 +283,8 @@
     <string name="settings_rate_desc">Opens the Play Store.</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="privacy_policy_short">No account, no internet, no data leaves your phone.</string>
-    <string name="privacy_policy_text">Hisaab Diary works fully offline. It has no internet permission, no account, no ads and no analytics. Your books, people, entries and photos are saved only on this phone. Backups are files you save yourself, where you choose. Contacts are read only when you pick one person in the contact picker. Nothing is shared unless you share it yourself (for example a reminder or a PDF).</string>
+    <string name="privacy_policy_text">Hisaab Diary works fully offline. It has no internet permission, no account, no ads and no analytics. Your books, people, entries and photos are saved only on this phone. Backups are files you save yourself, where you choose. Contacts are read only when you pick one person in the contact picker. Nothing is shared unless you share it yourself (for example a PDF or a backup file).</string>
+    <string name="privacy_policy_read_full">Read full policy</string>
 
     <!-- Onboarding -->
     <string name="intro_private_title">Offline and private</string>

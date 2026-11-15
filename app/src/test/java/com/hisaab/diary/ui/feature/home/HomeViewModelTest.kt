@@ -88,7 +88,10 @@ class HomeViewModelTest {
         val vm = viewModel()
 
         vm.uiState.test {
-            awaitUntil { it.parties.size == 3 }
+            val all = awaitUntil { it.parties.size == 3 }
+            // Tab counts: Ali and Zara owe you; nobody you owe; Bilal is settled (only on "All").
+            assertEquals(2, all.willGetCount)
+            assertEquals(0, all.willGiveCount)
 
             vm.onEvent(HomeEvent.QueryChanged("za"))
             assertEquals(listOf("Zara"), awaitUntil { it.query == "za" && it.parties.size == 1 }.names())
