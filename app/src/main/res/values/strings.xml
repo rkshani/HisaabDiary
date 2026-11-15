@@ -211,7 +211,10 @@
     <string name="settings_fingerprint_desc">Unlock without typing the PIN.</string>
     <string name="settings_lock_after">Lock after</string>
     <string name="lock_after_now">Right away</string>
-    <string name="lock_after_seconds">%1$d seconds in the background</string>
+    <plurals name="lock_after_seconds">
+        <item quantity="one">%1$d second in the background</item>
+        <item quantity="other">%1$d seconds in the background</item>
+    </plurals>
     <string name="lock_after_minutes">%1$d min in the background</string>
     <string name="pin_new">Choose a 4-digit PIN</string>
     <string name="pin_confirm">Enter the PIN again</string>
@@ -221,7 +224,10 @@
     <string name="lock_use_fingerprint">Use fingerprint</string>
     <string name="lock_use_pin">Use PIN</string>
     <string name="lock_biometric_title">Unlock Hisaab Diary</string>
-    <string name="lock_digits_entered">%1$d of %2$d digits entered</string>
+    <plurals name="lock_digits_entered">
+        <item quantity="one">%1$d of %2$d digit entered</item>
+        <item quantity="other">%1$d of %2$d digits entered</item>
+    </plurals>
 
     <!-- Settings: privacy -->
     <string name="settings_privacy">Privacy</string>

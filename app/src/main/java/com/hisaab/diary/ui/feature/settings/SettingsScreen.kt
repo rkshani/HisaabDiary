@@ -361,7 +361,7 @@ fun SettingsScreen(
 @Composable
 private fun timeoutLabel(seconds: Int): String = when (seconds) {
     0 -> stringResource(R.string.lock_after_now)
-    in 1 until SECONDS_PER_MINUTE -> stringResource(R.string.lock_after_seconds, seconds)
+    in 1 until SECONDS_PER_MINUTE -> pluralStringResource(R.plurals.lock_after_seconds, seconds, seconds)
     else -> stringResource(R.string.lock_after_minutes, seconds / SECONDS_PER_MINUTE)
 }
 

@@ -2,9 +2,11 @@ package com.hisaab.diary.ui
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +16,7 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -52,6 +55,14 @@ fun AppDrawerContent(onItemClick: (DrawerItem) -> Unit, modifier: Modifier = Mod
 @Composable
 private fun DrawerHeader(modifier: Modifier = Modifier) {
     Column(modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 24.dp)) {
+        Image(
+            painter = painterResource(R.drawable.ic_app_logo),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(bottom = 12.dp)
+                .size(56.dp)
+                .clip(MaterialTheme.shapes.medium),
+        )
         Text(
             text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.headlineSmall,

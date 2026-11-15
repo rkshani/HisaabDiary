@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -86,7 +87,8 @@ fun LockScreen(
 
 @Composable
 fun PinDots(filled: Int, modifier: Modifier = Modifier) {
-    val description = stringResource(R.string.lock_digits_entered, filled, PinHasher.PIN_LENGTH)
+    val length = PinHasher.PIN_LENGTH
+    val description = pluralStringResource(R.plurals.lock_digits_entered, length, filled, length)
     Row(
         modifier = modifier.semantics { contentDescription = description },
         horizontalArrangement = Arrangement.spacedBy(16.dp),

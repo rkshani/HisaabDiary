@@ -64,7 +64,7 @@ android {
         abortOnError = true
         checkDependencies = true
         lintConfig = file("lint.xml")
-        // Known old issues (app icon comes in Phase 12.1). New issues fail the build.
+        // Known old issues go here (none now). New issues fail the build.
         baseline = file("lint-baseline.xml")
     }
 

@@ -82,6 +82,9 @@ class DueReminderWorker(context: Context, params: WorkerParameters) : CoroutineW
 }
 
 /** Builds and posts the due-date notifications. */
+// POST_NOTIFICATIONS is off in the manifest while reminders are hidden (FEATURE_REMINDERS = false).
+// Every post is checked with DueReminderWorker.canNotify() first.
+@SuppressLint("NotificationPermission")
 object ReminderNotifications {
     private const val CHANNEL_ID = "dues"
 
